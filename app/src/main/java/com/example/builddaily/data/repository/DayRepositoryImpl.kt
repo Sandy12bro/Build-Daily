@@ -120,4 +120,24 @@ class DayRepositoryImpl : DayRepository {
             exception = e
         ))
     }
+
+    override suspend fun getAllDays(userId: String): NetworkResult<List<Day>> {
+        return try {
+            NetworkResult.Loading<List<Day>>()
+            val result = SupabaseClient.client
+                .from("days")
+                .select {
+                    filter {
+                        eq("userId", userId)
+                    }
+                }
+                .decodeList<Day>()
+            NetworkResult.Success(result)
+        } catch (e: Exception) {
+            NetworkResult.Error<List<Day>>(
+                message = "Failed to get all days: ${e.message}",
+                exception = e
+            )
+        }
+    }
 }

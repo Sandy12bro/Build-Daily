@@ -10,4 +10,5 @@ interface DayRepository {
     suspend fun updateDay(day: Day): NetworkResult<Day>
     suspend fun deleteDay(dayId: String, userId: String): NetworkResult<Unit>
     fun observeDay(date: String, userId: String): Flow<NetworkResult<Day?>>
+    suspend fun getAllDays(userId: String): NetworkResult<List<Day>>
 }

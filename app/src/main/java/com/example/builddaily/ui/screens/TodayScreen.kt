@@ -35,7 +35,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel = koinViewModel(),
-    onNavigateToPlan: () -> Unit
+    onNavigateToPlan: () -> Unit,
+    onNavigateToDiary: () -> Unit
 ) {
     val todayDay by viewModel.todayDay.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
@@ -112,25 +113,50 @@ fun TodayScreen(
                 }
             }
             
-            // Plan Day button
-            Button(
-                onClick = onNavigateToPlan,
+            // Bottom Actions
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = White
-                )
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Plan Day",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Medium
+                Button(
+                    onClick = onNavigateToPlan,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = White
                     )
-                )
+                ) {
+                    Text(
+                        text = "Plan Day",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                }
+
+                Button(
+                    onClick = onNavigateToDiary,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text(
+                        text = "Reflect",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                }
             }
         }
     }
