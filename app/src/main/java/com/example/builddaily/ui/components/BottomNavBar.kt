@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -53,7 +54,7 @@ fun BottomNavBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            .padding(horizontal = 12.dp, vertical = 20.dp),
         contentAlignment = Alignment.Center
     ) {
         // Main Container
@@ -83,7 +84,7 @@ fun BottomNavBar(
                             indication = null,
                             onClick = { onItemSelected(item) }
                         )
-                        .padding(horizontal = if (isSelected) 16.dp else 12.dp),
+                        .padding(horizontal = if (isSelected) 14.dp else 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
@@ -113,11 +114,14 @@ fun BottomNavBar(
                             Text(
                                 text = item.label,
                                 color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false,
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 ),
-                                modifier = Modifier.padding(start = 12.dp)
+                                modifier = Modifier.padding(start = 8.dp)
                             )
                         }
                     }

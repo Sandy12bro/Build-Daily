@@ -13,6 +13,7 @@ data class Task(
     @SerialName("start_time") val startTime: String = "",
     @SerialName("end_time") val endTime: String? = null,
     @SerialName("is_completed") val isCompleted: Boolean = false,
+    @SerialName("color_hex") val colorHex: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     val position: Int = 0
 )

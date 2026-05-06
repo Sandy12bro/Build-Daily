@@ -36,10 +36,19 @@ fun TaskCard(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Generate a consistent color based on task title to avoid "boring" uniformity
-    val categoryColor = remember(task.title) {
-        val index = abs(task.title.hashCode()) % TaskCategoryColors.size
-        TaskCategoryColors[index]
+    // Use user-selected color if available, otherwise generate consistent color based on title
+    val categoryColor = remember(task.title, task.colorHex) {
+        if (!task.colorHex.isNullOrBlank()) {
+            try {
+                Color(android.graphics.Color.parseColor(task.colorHex))
+            } catch (e: Exception) {
+                val index = abs(task.title.hashCode()) % TaskCategoryColors.size
+                TaskCategoryColors[index]
+            }
+        } else {
+            val index = abs(task.title.hashCode()) % TaskCategoryColors.size
+            TaskCategoryColors[index]
+        }
     }
 
     val cardAlpha = if (task.isCompleted) 0.3f else 0.8f

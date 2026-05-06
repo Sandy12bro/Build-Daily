@@ -1,5 +1,10 @@
 package com.example.builddaily.ui.addtask
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,11 +14,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
@@ -45,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -72,6 +81,7 @@ fun AddTaskScreen(
     val isSaving by viewModel.isSaving.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val saveSuccess by viewModel.saveSuccess.collectAsState()
+    val selectedColorHex by viewModel.colorHex.collectAsState()
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -119,7 +129,7 @@ fun AddTaskScreen(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
-            ) {
+              ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
@@ -234,6 +244,50 @@ fun AddTaskScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    "Task Color",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    com.example.builddaily.ui.theme.TaskCategoryColors.forEach { color ->
+                        val hex = String.format("#%06X", (0xFFFFFF and color.toArgb()))
+                        val isSelected = selectedColorHex == hex
+
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .border(
+                                    width = 2.dp,
+                                    color = if (isSelected) Color.White else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable { viewModel.onColorChange(hex) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
@@ -340,5 +394,9 @@ fun AddTaskScreen(
 
 @Composable
 private fun remember(factory: () -> AddTaskViewModel): AddTaskViewModel {
-    return androidx.compose.runtime.remember { factory() }
+    return androidx.lifecycle.viewmodel.compose.viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            return factory() as T
+        }
+    })
 }

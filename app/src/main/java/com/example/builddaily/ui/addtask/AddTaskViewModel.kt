@@ -23,6 +23,7 @@ class AddTaskViewModel(
     val date = MutableStateFlow(today().toString())
     val startTime = MutableStateFlow("09:00")
     val endTime = MutableStateFlow("")
+    val colorHex = MutableStateFlow<String?>(null)
 
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving
@@ -49,6 +50,7 @@ class AddTaskViewModel(
                     date.value = task.date
                     startTime.value = task.startTime
                     endTime.value = task.endTime ?: ""
+                    colorHex.value = task.colorHex
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to load task details"
@@ -81,6 +83,10 @@ class AddTaskViewModel(
         endTime.value = value
     }
 
+    fun onColorChange(hex: String?) {
+        colorHex.value = hex
+    }
+
     fun saveTask() {
         if (title.value.isBlank()) {
             _error.value = "Title is required"
@@ -97,7 +103,8 @@ class AddTaskViewModel(
                         description = description.value.trim().ifBlank { null },
                         date = date.value,
                         startTime = startTime.value,
-                        endTime = endTime.value.ifBlank { null }
+                        endTime = endTime.value.ifBlank { null },
+                        colorHex = colorHex.value
                     )
                     repository.updateTask(updatedTask)
                 } else {
@@ -107,7 +114,8 @@ class AddTaskViewModel(
                         description = description.value.trim().ifBlank { null },
                         date = date.value,
                         startTime = startTime.value,
-                        endTime = endTime.value.ifBlank { null }
+                        endTime = endTime.value.ifBlank { null },
+                        colorHex = colorHex.value
                     )
                     repository.insertTask(task)
                 }

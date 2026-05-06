@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,7 +45,6 @@ import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.fill
@@ -52,6 +53,7 @@ import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,9 +158,9 @@ fun StatsScreen(
                         modelProducer = modelProducer,
                         chart = rememberCartesianChart(
                             rememberLineCartesianLayer(
-                                lines = listOf(
-                                    rememberLineSpec(fill = fill(CyberPurple), thickness = 3.dp),
-                                    rememberLineSpec(fill = fill(MintGreen), thickness = 3.dp)
+                                lineProvider = LineCartesianLayer.LineProvider.series(
+                                    LineCartesianLayer.Line(fill = LineCartesianLayer.LineFill.single(fill(CyberPurple))),
+                                    LineCartesianLayer.Line(fill = LineCartesianLayer.LineFill.single(fill(MintGreen)))
                                 )
                             ),
                             startAxis = VerticalAxis.rememberStart(),
@@ -220,6 +222,3 @@ private fun remember(factory: () -> StatsViewModel): StatsViewModel {
         }
     })
 }
-
-// Missing imports fix
-import androidx.compose.foundation.layout.size
