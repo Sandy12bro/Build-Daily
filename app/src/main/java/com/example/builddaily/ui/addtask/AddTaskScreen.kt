@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -176,7 +178,7 @@ fun AddTaskScreen(
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = {
                         IconButton(onClick = { showDatePicker = true }) {
-                            Icon(androidx.compose.material.icons.Icons.Default.DateRange, contentDescription = "Select Date", tint = Color.White)
+                            Icon(Icons.Default.DateRange, contentDescription = "Select Date", tint = Color.White)
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -199,7 +201,7 @@ fun AddTaskScreen(
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = {
                             IconButton(onClick = { showStartTimePicker = true }) {
-                                Icon(androidx.compose.material.icons.Icons.Default.AccessTime, contentDescription = "Start Time", tint = Color.White)
+                                Icon(Icons.Default.Schedule, contentDescription = "Start Time", tint = Color.White)
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
@@ -221,7 +223,7 @@ fun AddTaskScreen(
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = {
                             IconButton(onClick = { showEndTimePicker = true }) {
-                                Icon(androidx.compose.material.icons.Icons.Default.AccessTime, contentDescription = "End Time", tint = Color.White)
+                                Icon(Icons.Default.Schedule, contentDescription = "End Time", tint = Color.White)
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
