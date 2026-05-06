@@ -47,6 +47,10 @@ fun StatsScreen(repository: TaskRepository) {
     val statsData by viewModel.statsData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.setPeriod(period) // This triggers loadStats()
+    }
+
     val modelProducer = remember { CartesianChartModelProducer() }
 
     LaunchedEffect(statsData) {

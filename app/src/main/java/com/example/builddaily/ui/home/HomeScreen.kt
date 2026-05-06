@@ -45,6 +45,10 @@ fun HomeScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadTasks()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
