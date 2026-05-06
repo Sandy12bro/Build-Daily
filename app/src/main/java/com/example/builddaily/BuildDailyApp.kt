@@ -18,6 +18,7 @@ import com.example.builddaily.ui.addtask.AddTaskScreen
 import com.example.builddaily.ui.components.BottomNavBar
 import com.example.builddaily.ui.history.HistoryScreen
 import com.example.builddaily.ui.home.HomeScreen
+import com.example.builddaily.ui.profile.ProfileScreen
 import com.example.builddaily.ui.stats.StatsScreen
 
 @Composable
@@ -85,6 +86,9 @@ fun BuildDailyApp() {
             }
             composable("stats") {
                 StatsScreen(repository = repository)
+            }
+            composable("profile") {
+                ProfileScreen()
             }
         }
     }

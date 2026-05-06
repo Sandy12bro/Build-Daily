@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +39,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.builddaily.data.repository.TaskRepository
+import com.example.builddaily.ui.components.TaskCard
+import com.example.builddaily.ui.theme.CyberPurple
+import com.example.builddaily.ui.theme.ElectricBlue
+import com.example.builddaily.util.formatDisplay
+import com.example.builddaily.util.today
 import com.example.builddaily.ui.components.TaskCard
 import com.example.builddaily.util.formatDisplay
 import com.example.builddaily.util.today
@@ -79,31 +85,27 @@ fun HomeScreen(
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                    title = {
-                        Column {
-                            Text(
-                                "Build Daily",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                today().formatDisplay(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
-                            )
-                        }
+                title = {
+                    Column {
+                        com.example.builddaily.ui.components.AppTitleWithLogo("Build Daily")
+                        Text(
+                            today().formatDisplay(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(start = 44.dp)
+                        )
                     }
+                }
                 )
             },
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = onAddTask,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = RoundedCornerShape(16.dp)
+                    containerColor = ElectricBlue,
+                    contentColor = Color.Black,
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add task")
+                    Icon(Icons.Default.Add, contentDescription = "Add task", modifier = Modifier.size(28.dp))
                 }
             }
         ) { padding ->
@@ -143,10 +145,10 @@ fun HomeScreen(
                         progress = { progress },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(10.dp)
-                            .clip(RoundedCornerShape(5.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            .height(12.dp)
+                            .clip(RoundedCornerShape(6.dp)),
+                        color = CyberPurple,
+                        trackColor = Color.White.copy(alpha = 0.05f),
                         strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                     )
                 }

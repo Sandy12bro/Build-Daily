@@ -35,10 +35,10 @@ import androidx.compose.ui.unit.dp
 import com.example.builddaily.data.repository.TaskRepository
 import com.example.builddaily.ui.components.TaskCard
 import com.example.builddaily.util.formatDisplay
+import com.example.builddaily.util.toEpochMillis
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,15 +65,11 @@ fun HistoryScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                 title = {
                     Column {
-                        Text(
-                            "Archives",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        com.example.builddaily.ui.components.AppTitleWithLogo("History")
                         TextButton(
                             onClick = { showDatePicker = true },
-                            contentPadding = PaddingValues(0.dp)
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.padding(start = 44.dp)
                         ) {
                             Text(
                                 selectedDate.formatDisplay(),
@@ -99,9 +95,9 @@ fun HistoryScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(tasks, key = { it.id }) { task ->
+                    items(tasks) { task ->
                         TaskCard(
                             task = task,
                             onToggleComplete = { viewModel.toggleTaskCompletion(task) },
@@ -112,46 +108,31 @@ fun HistoryScreen(
                 }
             }
         }
+    }
 
-        if (showDatePicker) {
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = selectedDate.atStartOfDayMillis()
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.toEpochMillis()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        val selected = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date
+                        viewModel.onDateSelected(selected)
+                    }
+                    showDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            },
+            colors = DatePickerDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface
             )
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            val date = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date
-                            viewModel.onDateSelected(date)
-                        }
-                        showDatePicker = false
-                    }) {
-                        Text("CONFIRM", fontWeight = FontWeight.Bold)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
-                        Text("CANCEL")
-                    }
-                },
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                DatePicker(state = datePickerState)
-            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }
-
-private fun LocalDate.atStartOfDayMillis(): Long {
-    return this.toLocalDateTime(kotlinx.datetime.LocalTime(0, 0)).toInstant(TimeZone.UTC).toEpochMilliseconds()
-}
-
-@Composable
-private fun remember(factory: () -> HistoryViewModel): HistoryViewModel {
-    return androidx.compose.runtime.remember { factory() }
-}
-
-private fun LocalDate.toLocalDateTime(time: kotlinx.datetime.LocalTime) = kotlinx.datetime.LocalDateTime(this, time)

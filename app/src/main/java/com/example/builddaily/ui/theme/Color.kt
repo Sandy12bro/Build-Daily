@@ -2,19 +2,47 @@ package com.example.builddaily.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Onyx & Glass Palette
-val OnyxBlack = Color(0xFF0A0A0C)
-val SurfaceGrey = Color(0xFF161618)
-val GlassGrey = Color(0xFF1E1E20)
-val BlueprintLavender = Color(0xFFD0BCFF)
-val ConstructionEmerald = Color(0xFF10B981)
-val ErrorRose = Color(0xFFF43F5E)
-val Slate400 = Color(0xFF94A3B8)
+// Premium Galactic Dark Palette (Base)
+val SpaceBlack = Color(0xFF050505)
+val DeepVoid = Color(0xFF0D0D12)
+val NebulaGrey = Color(0xFF16161D)
+val GlassLayer = Color(0xFF23232E)
 
-// Legacy compatibility
-val Purple80 = BlueprintLavender
+// Multi-Color Palette (Vibrant & Diverse)
+val CyberPurple = Color(0xFF8B5CF6)   // Core Action
+val ElectricBlue = Color(0xFF3B82F6)    // Focus / Primary
+val MintGreen = Color(0xFF10B981)      // Completed / Success
+val SolarYellow = Color(0xFFF59E0B)    // Pending / Warning
+val FlareRed = Color(0xFFEF4444)       // Error / Urgent
+val OceanTeal = Color(0xFF14B8A6)      // Alternate
+val BerryPink = Color(0xFFEC4899)      // Special
+
+// Support Colors
+val StarWhite = Color(0xFFF8FAFC)
+val MutedSlate = Color(0xFF64748B)
+
+// Color Palette for Random/Category Assignments
+val TaskCategoryColors = listOf(
+    CyberPurple,
+    ElectricBlue,
+    MintGreen,
+    SolarYellow,
+    OceanTeal,
+    BerryPink
+)
+
+// Legacy mapping (pointing to new vibrant colors)
+val OnyxBlack = SpaceBlack
+val SurfaceGrey = DeepVoid
+val GlassGrey = GlassLayer
+val BlueprintLavender = ElectricBlue // Changed from Purple to Blue for freshness
+val ConstructionEmerald = MintGreen
+val ErrorRose = FlareRed
+val Slate400 = MutedSlate
+
+val Purple80 = CyberPurple
 val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val Pink80 = BerryPink
 
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)

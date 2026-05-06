@@ -18,6 +18,11 @@ fun LocalDate.formatDisplay(): String {
     return "$dayOfWeek, ${this.dayOfMonth} $month ${this.year}"
 }
 
+fun LocalDate.toEpochMillis(): Long {
+    val javaDate = java.time.LocalDate.of(this.year, this.monthNumber, this.dayOfMonth)
+    return javaDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+}
+
 fun formatTime(time: String): String {
     val parts = time.split(":")
     if (parts.size < 2) return time

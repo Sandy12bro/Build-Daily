@@ -36,20 +36,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.builddaily.data.repository.TaskRepository
+import com.example.builddaily.ui.theme.CyberPurple
+import com.example.builddaily.ui.theme.ElectricBlue
+import com.example.builddaily.ui.theme.MintGreen
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
-import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
-import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +68,7 @@ fun StatsScreen(
     LaunchedEffect(statsData) {
         if (statsData.totalCounts.isNotEmpty()) {
             modelProducer.runTransaction {
-                columnSeries {
+                lineSeries {
                     series(statsData.totalCounts)
                     series(statsData.completedCounts)
                 }
@@ -80,19 +82,14 @@ fun StatsScreen(
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                 title = { 
-                    Text(
-                        "Performance Insights", 
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    ) 
+                    com.example.builddaily.ui.components.AppTitleWithLogo("Performance") 
                 }
             )
         }
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator(color = ElectricBlue)
             }
         } else {
             Column(
@@ -109,10 +106,10 @@ fun StatsScreen(
                             onClick = { viewModel.setPeriod(p) },
                             selected = period == p,
                             colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = MaterialTheme.colorScheme.primary,
-                                activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-                                inactiveContentColor = MaterialTheme.colorScheme.secondary
+                                activeContainerColor = ElectricBlue,
+                                activeContentColor = Color.Black,
+                                inactiveContainerColor = Color.White.copy(alpha = 0.05f),
+                                inactiveContentColor = Color.White.copy(alpha = 0.5f)
                             )
                         ) {
                             Text(p.name.lowercase().replaceFirstChar { it.uppercase() })
@@ -129,17 +126,17 @@ fun StatsScreen(
                 ) {
                     val efficiency = if (statsData.overallTotal > 0) (statsData.overallCompleted * 100 / statsData.overallTotal) else 0
 
-                    StatCard(label = "TOTAL TASKS", value = statsData.overallTotal.toString(), modifier = Modifier.weight(1f))
-                    StatCard(label = "COMPLETED", value = statsData.overallCompleted.toString(), modifier = Modifier.weight(1f))
-                    StatCard(label = "RATE", value = "$efficiency%", modifier = Modifier.weight(1f))
+                    StatCard(label = "TOTAL", value = statsData.overallTotal.toString(), color = CyberPurple, modifier = Modifier.weight(1f))
+                    StatCard(label = "DONE", value = statsData.overallCompleted.toString(), color = MintGreen, modifier = Modifier.weight(1f))
+                    StatCard(label = "RATE", value = "$efficiency%", color = ElectricBlue, modifier = Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    "Activity History",
+                    "Activity Trends",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 
@@ -148,20 +145,20 @@ fun StatsScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(240.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f))
-                        .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
-                        .padding(16.dp)
+                        .height(260.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color.White.copy(alpha = 0.03f))
+                        .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
+                        .padding(20.dp)
                 ) {
                     CartesianChartHost(
                         modifier = Modifier.fillMaxSize(),
                         modelProducer = modelProducer,
                         chart = rememberCartesianChart(
-                            rememberColumnCartesianLayer(
-                                ColumnCartesianLayer.ColumnProvider.series(
-                                    rememberLineComponent(fill = fill(MaterialTheme.colorScheme.primary), thickness = 8.dp),
-                                    rememberLineComponent(fill = fill(MaterialTheme.colorScheme.tertiary), thickness = 8.dp)
+                            rememberLineCartesianLayer(
+                                lines = listOf(
+                                    rememberLineSpec(fill = fill(CyberPurple), thickness = 3.dp),
+                                    rememberLineSpec(fill = fill(MintGreen), thickness = 3.dp)
                                 )
                             ),
                             startAxis = VerticalAxis.rememberStart(),
@@ -170,29 +167,59 @@ fun StatsScreen(
                         scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End)
                     )
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Legend
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LegendItem(color = CyberPurple, label = "Total Tasks")
+                    Spacer(modifier = Modifier.width(24.dp))
+                    LegendItem(color = MintGreen, label = "Completed")
+                }
             }
         }
     }
 }
 
 @Composable
-fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
+fun LegendItem(color: Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(color))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+    }
+}
+
+@Composable
+fun StatCard(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier.border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(12.dp)
+        modifier = modifier.border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(20.dp)),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.05f)),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f))
+            Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = color)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
 private fun remember(factory: () -> StatsViewModel): StatsViewModel {
-    return androidx.compose.runtime.remember { factory() }
+    return androidx.lifecycle.viewmodel.compose.viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            return factory() as T
+        }
+    })
 }
+
+// Missing imports fix
+import androidx.compose.foundation.layout.size
