@@ -18,7 +18,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.builddaily.ui.theme.Gray50
 import com.example.builddaily.ui.theme.White
 import com.example.builddaily.viewmodel.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -54,7 +53,7 @@ fun LoginScreen(
                     .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Gray50
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 2.dp

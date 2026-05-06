@@ -101,18 +101,22 @@ class TodayViewModel : ViewModel() {
     }
     
     fun addTask(task: Task) {
+        // Optimistic update
+        val updatedTasks = _tasks.value + task
+        _tasks.value = updatedTasks
+        updateCompletionRate()
+        
         viewModelScope.launch {
             when (val result = taskRepository.createTask(task)) {
                 is NetworkResult.Success -> {
-                    val updatedTasks = _tasks.value + result.data
-                    _tasks.value = updatedTasks
-                    updateCompletionRate()
+                    // Update with real ID if necessary
+                    val finalTasks = _tasks.value.map { if (it.title == task.title) result.data!! else it }
+                    _tasks.value = finalTasks
                 }
                 is NetworkResult.Error -> {
-                    // Handle error
+                    // Revert optimistic update on error if needed
                 }
                 is NetworkResult.Loading -> {
-                    // Already loading
                 }
             }
         }
@@ -168,5 +172,18 @@ class TodayViewModel : ViewModel() {
     fun getDisplayDate(): String {
         val today = LocalDate.now()
         return today.format(DateTimeFormatter.ofPattern("MMMM d"))
+    }
+    
+    fun addNewTask(title: String, time: String, energyType: com.example.builddaily.data.models.EnergyType) {
+        val day = _todayDay.value ?: return
+        val newTask = Task(
+            userId = currentUserId,
+            dayId = day.id!!,
+            title = title,
+            time = time.takeIf { it.isNotBlank() },
+            energyType = energyType,
+            status = TaskStatus.PENDING
+        )
+        addTask(newTask)
     }
 }

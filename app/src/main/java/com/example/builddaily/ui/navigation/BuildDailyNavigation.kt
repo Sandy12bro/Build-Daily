@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,23 +23,22 @@ import com.example.builddaily.ui.screens.DiaryScreen
 import com.example.builddaily.ui.screens.HomeScreen
 import com.example.builddaily.ui.screens.InsightsScreen
 import com.example.builddaily.ui.screens.LoginScreen
-import com.example.builddaily.ui.screens.PlanDayScreen
 import com.example.builddaily.ui.screens.TodayScreen
 
 sealed class Screen(val route: String, val title: String? = null, val icon: ImageVector? = null) {
     object Login : Screen("login")
     object Today : Screen("today", "Today", Icons.Default.Home)
-    object PlanDay : Screen("plan_day")
     object Diary : Screen("diary")
     object Calendar : Screen("calendar", "Calendar", Icons.Default.DateRange)
     object Insights : Screen("insights", "Insights", Icons.Default.Info)
-    object Home : Screen("home")
+    object Home : Screen("home", "Profile", Icons.Default.Person)
 }
 
 val bottomNavItems = listOf(
     Screen.Today,
     Screen.Calendar,
-    Screen.Insights
+    Screen.Insights,
+    Screen.Home
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,7 +77,7 @@ fun BuildDailyNavigation(
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Today.route,
+            startDestination = Screen.Login.route,
             modifier = Modifier.padding(padding)
         ) {
             composable(Screen.Login.route) {
@@ -91,17 +91,9 @@ fun BuildDailyNavigation(
             }
             composable(Screen.Today.route) {
                 TodayScreen(
-                    onNavigateToPlan = {
-                        navController.navigate(Screen.PlanDay.route)
-                    },
                     onNavigateToDiary = {
                         navController.navigate(Screen.Diary.route)
                     }
-                )
-            }
-            composable(Screen.PlanDay.route) {
-                PlanDayScreen(
-                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable(Screen.Diary.route) {

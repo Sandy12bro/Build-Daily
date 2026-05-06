@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,15 +30,14 @@ import kotlin.math.roundToInt
 import com.example.builddaily.data.models.EnergyType
 import com.example.builddaily.data.models.Task
 import com.example.builddaily.data.models.TaskStatus
-import com.example.builddaily.ui.theme.Gray50
 import com.example.builddaily.ui.theme.White
 import com.example.builddaily.viewmodel.TodayViewModel
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel = koinViewModel(),
-    onNavigateToPlan: () -> Unit,
     onNavigateToDiary: () -> Unit
 ) {
     val todayDay by viewModel.todayDay.collectAsState()
@@ -43,14 +45,26 @@ fun TodayScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val displayDate = viewModel.getDisplayDate()
     
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-    ) {
+    var showAddTaskSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddTaskSheet = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(imageVector = androidx.compose.material.icons.Icons.Default.Add, contentDescription = "Add Task")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp)
         ) {
             // Header with date and progress
             Column(
@@ -112,52 +126,145 @@ fun TodayScreen(
                     )
                 }
             }
-            
-            // Bottom Actions
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Button(
-                    onClick = onNavigateToPlan,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = White
-                    )
-                ) {
-                    Text(
-                        text = "Plan Day",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
+        }
+    }
 
-                Button(
-                    onClick = onNavigateToDiary,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                ) {
-                    Text(
-                        text = "Reflect",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
+    if (showAddTaskSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showAddTaskSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            sheetState = sheetState
+        ) {
+            AddTaskContent(
+                onTaskAdded = { title, time, energyType ->
+                    viewModel.addNewTask(title, time, energyType)
+                    showAddTaskSheet = false
+                },
+                onDismiss = { showAddTaskSheet = false }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddTaskContent(
+    onTaskAdded: (String, String, EnergyType) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var timeStr by remember { mutableStateOf("") }
+    var showTimePicker by remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState()
+    var selectedEnergyType by remember { mutableStateOf(EnergyType.DEEP) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp)
+            .padding(bottom = 32.dp)
+    ) {
+        Text("Add New Task", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = title,
+            onValueChange = { title = it },
+            label = { Text("Task Title") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = timeStr,
+            onValueChange = { },
+            label = { Text("Time (Optional)") },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth().clickable { showTimePicker = true },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            ),
+            trailingIcon = {
+                IconButton(onClick = { showTimePicker = true }) {
+                    Icon(imageVector = androidx.compose.material.icons.Icons.Default.MoreVert, contentDescription = "Pick time") // Temporary icon, need appropriate Time icon if available
                 }
             }
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("Energy Required", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Button(
+                onClick = { selectedEnergyType = EnergyType.DEEP },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedEnergyType == EnergyType.DEEP) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (selectedEnergyType == EnergyType.DEEP) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Text("Deep")
+            }
+            
+            Button(
+                onClick = { selectedEnergyType = EnergyType.LIGHT },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedEnergyType == EnergyType.LIGHT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (selectedEnergyType == EnergyType.LIGHT) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Text("Light")
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Button(
+            onClick = {
+                if (title.isNotBlank()) {
+                    onTaskAdded(title, timeStr, selectedEnergyType)
+                }
+            },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            enabled = title.isNotBlank()
+        ) {
+            Text("Add Task")
+        }
+        
+        if (showTimePicker) {
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val minuteStr = timePickerState.minute.toString().padStart(2, '0')
+                        timeStr = "${timePickerState.hour}:${minuteStr}"
+                        showTimePicker = false
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTimePicker = false }) {
+                        Text("Cancel")
+                    }
+                },
+                text = {
+                    TimePicker(state = timePickerState)
+                }
+            )
         }
     }
 }
@@ -198,9 +305,9 @@ private fun TaskCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = when (task.status) {
-                TaskStatus.DONE -> Gray50
-                TaskStatus.MISSED -> Gray50
-                else -> White
+                TaskStatus.DONE -> MaterialTheme.colorScheme.surfaceVariant
+                TaskStatus.MISSED -> MaterialTheme.colorScheme.surfaceVariant
+                else -> MaterialTheme.colorScheme.surface
             },
             contentColor = MaterialTheme.colorScheme.onSurface
         ),

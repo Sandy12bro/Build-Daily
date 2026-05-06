@@ -57,7 +57,10 @@ fun DiaryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
@@ -71,7 +74,7 @@ fun DiaryScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             
-            Text("How are you feeling?", fontSize = 16.sp, color = Color.Gray)
+            Text("How are you feeling?", fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
             Spacer(modifier = Modifier.height(12.dp))
             
             Row(
@@ -102,9 +105,9 @@ fun DiaryScreen(
 
             Text("Guided Prompts:", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("• What actually mattered today?", fontSize = 14.sp, color = Color.Gray)
-            Text("• What didn't go as planned?", fontSize = 14.sp, color = Color.Gray)
-            Text("• One improvement for tomorrow?", fontSize = 14.sp, color = Color.Gray)
+            Text("• What actually mattered today?", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
+            Text("• What didn't go as planned?", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
+            Text("• One improvement for tomorrow?", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -114,12 +117,14 @@ fun DiaryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                placeholder = { Text("Write your thoughts here...", color = Color.LightGray) },
+                placeholder = { Text("Write your thoughts here...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 ),
                 textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, lineHeight = 24.sp)
             )
@@ -138,12 +143,12 @@ fun MoodSelector(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+            .background(if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(12.dp)
     ) {
         Text(emoji, fontSize = 32.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(label, fontSize = 12.sp, color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else Color.Gray)
+        Text(label, fontSize = 12.sp, color = if (isSelected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
     }
 }
