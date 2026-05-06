@@ -6,7 +6,7 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 
-class TaskRepository(private val deviceId: String) {
+class TaskRepository(val deviceId: String) {
 
     private val table = "tasks"
     private val isDemoMode = SupabaseClient.client.supabaseUrl.contains("your-project.supabase.co") || SupabaseClient.client.supabaseUrl.isBlank()
@@ -63,6 +63,20 @@ class TaskRepository(private val deviceId: String) {
         SupabaseClient.client.from(table)
             .delete {
                 filter { eq("id", taskId) }
+            }
+    }
+
+    suspend fun updateTask(task: Task) {
+        if (isDemoMode) {
+            val index = mockTasks.indexOfFirst { it.id == task.id }
+            if (index != -1) {
+                mockTasks[index] = task
+            }
+            return
+        }
+        SupabaseClient.client.from(table)
+            .update(task) {
+                filter { eq("id", task.id) }
             }
     }
 

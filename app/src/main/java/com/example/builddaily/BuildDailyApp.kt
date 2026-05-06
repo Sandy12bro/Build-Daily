@@ -6,15 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.builddaily.data.DeviceIdManager
 import com.example.builddaily.data.repository.TaskRepository
 import com.example.builddaily.ui.addtask.AddTaskScreen
 import com.example.builddaily.ui.components.BottomNavBar
-import com.example.builddaily.ui.components.BottomNavItem
 import com.example.builddaily.ui.history.HistoryScreen
 import com.example.builddaily.ui.home.HomeScreen
 import com.example.builddaily.ui.stats.StatsScreen
@@ -31,7 +32,7 @@ fun BuildDailyApp() {
 
     Scaffold(
         bottomBar = {
-            if (currentRoute != "add_task") {
+            if (currentRoute != "add_task" && currentRoute?.startsWith("edit_task") != true) {
                 BottomNavBar(
                     currentRoute = currentRoute,
                     onItemSelected = { item ->
@@ -53,19 +54,34 @@ fun BuildDailyApp() {
             composable("home") {
                 HomeScreen(
                     repository = repository,
-                    onAddTask = { navController.navigate("add_task") }
+                    onAddTask = { navController.navigate("add_task") },
+                    onEditTask = { taskId -> navController.navigate("edit_task/$taskId") }
                 )
             }
             composable("add_task") {
                 AddTaskScreen(
                     repository = repository,
-                    deviceId = deviceId,
+                    onTaskSaved = { navController.popBackStack() },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "edit_task/{taskId}",
+                arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId")
+                AddTaskScreen(
+                    repository = repository,
+                    taskId = taskId,
                     onTaskSaved = { navController.popBackStack() },
                     onBack = { navController.popBackStack() }
                 )
             }
             composable("history") {
-                HistoryScreen(repository = repository)
+                HistoryScreen(
+                    repository = repository,
+                    onEditTask = { taskId -> navController.navigate("edit_task/$taskId") }
+                )
             }
             composable("stats") {
                 StatsScreen(repository = repository)
