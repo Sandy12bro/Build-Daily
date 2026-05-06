@@ -3,6 +3,7 @@ package com.example.builddaily.data.network
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.gotrue.Auth
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -18,5 +19,6 @@ object SupabaseClient {
         supabaseKey = SUPABASE_ANON_KEY
     ) {
         install(Postgrest)
+        install(Auth)
     }
 }

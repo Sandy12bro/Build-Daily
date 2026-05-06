@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.serialization.SerializationException
 
 class DayRepositoryImpl : DayRepository {
-    override suspend fun getDayByDate(date: String): NetworkResult<Day?> {
+    override suspend fun getDayByDate(date: String, userId: String): NetworkResult<Day?> {
         return try {
             NetworkResult.Loading<Day?>()
             val result = SupabaseClient.client
@@ -18,6 +18,7 @@ class DayRepositoryImpl : DayRepository {
                 .select {
                     filter {
                         eq("date", date)
+                        eq("userId", userId)
                     }
                 }
                 .decodeSingleOrNull<Day>()
@@ -74,7 +75,7 @@ class DayRepositoryImpl : DayRepository {
         }
     }
 
-    override suspend fun deleteDay(dayId: String): NetworkResult<Unit> {
+    override suspend fun deleteDay(dayId: String, userId: String): NetworkResult<Unit> {
         return try {
             NetworkResult.Loading<Unit>()
             SupabaseClient.client
@@ -82,6 +83,7 @@ class DayRepositoryImpl : DayRepository {
                 .delete {
                     filter {
                         eq("id", dayId)
+                        eq("userId", userId)
                     }
                 }
             NetworkResult.Success(Unit)
@@ -93,7 +95,7 @@ class DayRepositoryImpl : DayRepository {
         }
     }
 
-    override fun observeDay(date: String): Flow<NetworkResult<Day?>> = flow {
+    override fun observeDay(date: String, userId: String): Flow<NetworkResult<Day?>> = flow {
         emit(NetworkResult.Loading<Day?>())
         try {
             val result = SupabaseClient.client
@@ -101,6 +103,7 @@ class DayRepositoryImpl : DayRepository {
                 .select {
                     filter {
                         eq("date", date)
+                        eq("userId", userId)
                     }
                 }
                 .decodeSingleOrNull<Day>()

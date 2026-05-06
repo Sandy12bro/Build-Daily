@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Diary(
     val id: String? = null,
+    val userId: String,
     val dayId: String,
     val text: String,
     val mood: Mood,

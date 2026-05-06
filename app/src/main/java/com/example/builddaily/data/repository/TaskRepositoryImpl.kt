@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.serialization.SerializationException
 
 class TaskRepositoryImpl : TaskRepository {
-    override suspend fun getTasksByDay(dayId: String): NetworkResult<List<Task>> {
+    override suspend fun getTasksByDay(dayId: String, userId: String): NetworkResult<List<Task>> {
         return try {
             NetworkResult.Loading<List<Task>>()
             val result = SupabaseClient.client
@@ -18,6 +18,7 @@ class TaskRepositoryImpl : TaskRepository {
                 .select {
                     filter {
                         eq("day_id", dayId)
+                        eq("user_id", userId)
                     }
                 }
                 .decodeList<Task>()
@@ -74,7 +75,7 @@ class TaskRepositoryImpl : TaskRepository {
         }
     }
 
-    override suspend fun deleteTask(taskId: String): NetworkResult<Unit> {
+    override suspend fun deleteTask(taskId: String, userId: String): NetworkResult<Unit> {
         return try {
             NetworkResult.Loading<Unit>()
             SupabaseClient.client
@@ -82,6 +83,7 @@ class TaskRepositoryImpl : TaskRepository {
                 .delete {
                     filter {
                         eq("id", taskId)
+                        eq("user_id", userId)
                     }
                 }
             NetworkResult.Success(Unit)
@@ -93,7 +95,7 @@ class TaskRepositoryImpl : TaskRepository {
         }
     }
 
-    override fun observeTasksByDay(dayId: String): Flow<NetworkResult<List<Task>>> = flow {
+    override fun observeTasksByDay(dayId: String, userId: String): Flow<NetworkResult<List<Task>>> = flow {
         emit(NetworkResult.Loading<List<Task>>())
         try {
             val result = SupabaseClient.client
@@ -101,6 +103,7 @@ class TaskRepositoryImpl : TaskRepository {
                 .select {
                     filter {
                         eq("day_id", dayId)
+                        eq("user_id", userId)
                     }
                 }
                 .decodeList<Task>()

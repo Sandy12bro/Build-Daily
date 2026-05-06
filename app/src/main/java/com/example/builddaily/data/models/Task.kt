@@ -8,22 +8,22 @@ data class Task(
     val dayId: String,
     val title: String,
     val energyType: EnergyType,
+    val time: String? = null,
     val status: TaskStatus,
+    val userId: String,
     val createdAt: String? = null,
     val updatedAt: String? = null
 )
 
 @Serializable
 enum class EnergyType {
-    HIGH,
-    MEDIUM,
-    LOW
+    DEEP,
+    LIGHT
 }
 
 @Serializable
 enum class TaskStatus {
     PENDING,
-    IN_PROGRESS,
-    COMPLETED,
-    SKIPPED
+    DONE,
+    MISSED
 }
