@@ -59,4 +59,18 @@ class HistoryViewModel(private val repository: TaskRepository) : ViewModel() {
             } catch (_: Exception) {}
         }
     }
+
+    fun repeatTask(task: Task) {
+        viewModelScope.launch {
+            try {
+                val newTask = task.copy(
+                    id = java.util.UUID.randomUUID().toString(),
+                    date = today().toString(),
+                    isCompleted = false,
+                    createdAt = kotlinx.datetime.Clock.System.now().toString()
+                )
+                repository.insertTask(newTask)
+            } catch (_: Exception) {}
+        }
+    }
 }

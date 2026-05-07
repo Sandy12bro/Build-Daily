@@ -62,4 +62,21 @@ class HomeViewModel(private val repository: TaskRepository) : ViewModel() {
             }
         }
     }
+
+    fun repeatTask(task: Task) {
+        viewModelScope.launch {
+            try {
+                val newTask = task.copy(
+                    id = java.util.UUID.randomUUID().toString(),
+                    date = today().toString(),
+                    isCompleted = false,
+                    createdAt = kotlinx.datetime.Clock.System.now().toString()
+                )
+                repository.insertTask(newTask)
+                loadTasks() // Reload to show the new duplicated task
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
 }

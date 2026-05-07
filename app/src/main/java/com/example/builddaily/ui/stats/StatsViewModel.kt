@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 
 enum class StatsPeriod { DAILY, WEEKLY, MONTHLY, YEARLY }
 
@@ -20,13 +21,17 @@ data class StatsData(
     val totalCounts: List<Int> = emptyList(),
     val overallCompleted: Int = 0,
     val overallTotal: Int = 0,
-    val streak: Int = 0
+    val streak: Int = 0,
+    val dateRangeText: String = ""
 )
 
 class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
 
     private val _period = MutableStateFlow(StatsPeriod.DAILY)
     val period: StateFlow<StatsPeriod> = _period
+
+    private val _referenceDate = MutableStateFlow(today())
+    val referenceDate: StateFlow<LocalDate> = _referenceDate
 
     private val _statsData = MutableStateFlow(StatsData())
     val statsData: StateFlow<StatsData> = _statsData
@@ -40,6 +45,26 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
 
     fun setPeriod(p: StatsPeriod) {
         _period.value = p
+        _referenceDate.value = today() // Reset to today when switching periods
+        loadStats()
+    }
+
+    fun navigate(forward: Boolean) {
+        val (value, unit) = when (_period.value) {
+            StatsPeriod.DAILY -> 1 to DateTimeUnit.DAY
+            StatsPeriod.WEEKLY -> 1 to DateTimeUnit.WEEK
+            StatsPeriod.MONTHLY -> 1 to DateTimeUnit.MONTH
+            StatsPeriod.YEARLY -> 1 to DateTimeUnit.YEAR
+        }
+        
+        val nextDate = if (forward) {
+            _referenceDate.value.plus(value, unit)
+        } else {
+            _referenceDate.value.minus(value, unit)
+        }
+
+        val todayDate = today()
+        _referenceDate.value = if (forward && nextDate > todayDate) todayDate else nextDate
         loadStats()
     }
 
@@ -47,65 +72,85 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val todayDate = today()
-                val (startDate, labels) = when (_period.value) {
+                val refDate = _referenceDate.value
+                var startDate: LocalDate = refDate
+                var endDate: LocalDate = refDate
+                var labels: List<String> = emptyList()
+                var dateRangeText: String = ""
+
+                when (_period.value) {
                     StatsPeriod.DAILY -> {
-                        val start = todayDate.minus(6, DateTimeUnit.DAY)
-                        val lbls = (0..6).map { todayDate.minus(6 - it, DateTimeUnit.DAY) }
-                        start to lbls.map { "${it.dayOfMonth}/${it.monthNumber}" }
+                        startDate = refDate
+                        endDate = refDate
+                        labels = listOf("00", "03", "06", "09", "12", "15", "18", "21")
+                        dateRangeText = "${refDate.dayOfMonth} ${refDate.month.name.take(3)} ${refDate.year}"
                     }
                     StatsPeriod.WEEKLY -> {
-                        val start = todayDate.minus(27, DateTimeUnit.DAY)
-                        start to listOf("W4", "W3", "W2", "W1")
+                        startDate = refDate.minus(refDate.dayOfWeek.ordinal, DateTimeUnit.DAY)
+                        endDate = startDate.plus(6, DateTimeUnit.DAY)
+                        labels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        dateRangeText = "${startDate.dayOfMonth} ${startDate.month.name.take(3)} - ${endDate.dayOfMonth} ${endDate.month.name.take(3)}"
                     }
                     StatsPeriod.MONTHLY -> {
-                        val start = todayDate.minus(11, DateTimeUnit.MONTH)
-                        val lbls = (0..11).map {
-                            val d = todayDate.minus(11 - it, DateTimeUnit.MONTH)
-                            "${d.monthNumber}/${d.year % 100}"
-                        }
-                        start to lbls
+                        startDate = LocalDate(refDate.year, refDate.monthNumber, 1)
+                        endDate = startDate.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+                        labels = listOf("W1", "W2", "W3", "W4")
+                        dateRangeText = "${refDate.month.name} ${refDate.year}"
                     }
                     StatsPeriod.YEARLY -> {
-                        val start = todayDate.minus(2, DateTimeUnit.YEAR)
-                        val lbls = (0..2).map { (todayDate.year - 2 + it).toString() }
-                        start to lbls
+                        startDate = LocalDate(refDate.year, 1, 1)
+                        endDate = LocalDate(refDate.year, 12, 31)
+                        labels = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+                        dateRangeText = "${refDate.year}"
                     }
                 }
-                val allTasks = repository.getTasksInRange(startDate.toString(), todayDate.toString())
+
+                val allTasks = repository.getTasksInRange(startDate.toString(), endDate.toString())
 
                 val (completed, total) = when (_period.value) {
                     StatsPeriod.DAILY -> {
-                        val days = (0..6).map { todayDate.minus(6 - it, DateTimeUnit.DAY).toString() }
+                        // Group by 3-hour blocks
+                        val blocks = (0..7).map { it * 3 }
+                        val comp = blocks.map { b -> 
+                            allTasks.count { 
+                                val hour = it.startTime.split(":")[0].toIntOrNull() ?: 0
+                                hour >= b && hour < b + 3 && it.isCompleted 
+                            }
+                        }
+                        val tot = blocks.map { b -> 
+                            allTasks.count { 
+                                val hour = it.startTime.split(":")[0].toIntOrNull() ?: 0
+                                hour >= b && hour < b + 3
+                            }
+                        }
+                        comp to tot
+                    }
+                    StatsPeriod.WEEKLY -> {
+                        val days = (0..6).map { startDate.plus(it, DateTimeUnit.DAY).toString() }
                         val comp = days.map { d -> allTasks.count { it.date == d && it.isCompleted } }
                         val tot = days.map { d -> allTasks.count { it.date == d } }
                         comp to tot
                     }
-                    StatsPeriod.WEEKLY -> {
+                    StatsPeriod.MONTHLY -> {
+                        // Group by 7-day chunks (weeks)
                         val weeks = (0..3).map { w ->
-                            val weekStart = todayDate.minus((3 - w) * 7 + 6, DateTimeUnit.DAY)
-                            val weekEnd = todayDate.minus((3 - w) * 7, DateTimeUnit.DAY)
-                            weekStart.toString() to weekEnd.toString()
+                            val ws = startDate.plus(w * 7, DateTimeUnit.DAY).toString()
+                            val we = if (w == 3) endDate.toString() else startDate.plus(w * 7 + 6, DateTimeUnit.DAY).toString()
+                            ws to we
                         }
                         val comp = weeks.map { (s, e) -> allTasks.count { it.date >= s && it.date <= e && it.isCompleted } }
                         val tot = weeks.map { (s, e) -> allTasks.count { it.date >= s && it.date <= e } }
                         comp to tot
                     }
-                    StatsPeriod.MONTHLY -> {
-                        val months = (0..11).map { todayDate.minus(11 - it, DateTimeUnit.MONTH) }
-                        val comp = months.map { m -> allTasks.count { LocalDate.parse(it.date).monthNumber == m.monthNumber && LocalDate.parse(it.date).year == m.year && it.isCompleted } }
-                        val tot = months.map { m -> allTasks.count { LocalDate.parse(it.date).monthNumber == m.monthNumber && LocalDate.parse(it.date).year == m.year } }
-                        comp to tot
-                    }
                     StatsPeriod.YEARLY -> {
-                        val years = (0..2).map { todayDate.year - 2 + it }
-                        val comp = years.map { y -> allTasks.count { LocalDate.parse(it.date).year == y && it.isCompleted } }
-                        val tot = years.map { y -> allTasks.count { LocalDate.parse(it.date).year == y } }
+                        val months = (1..12)
+                        val comp = months.map { m -> allTasks.count { LocalDate.parse(it.date).monthNumber == m && it.isCompleted } }
+                        val tot = months.map { m -> allTasks.count { LocalDate.parse(it.date).monthNumber == m } }
                         comp to tot
                     }
                 }
 
-                val streak = calculateStreak(allTasks, todayDate)
+                val streak = calculateStreak(repository.getTasksInRange(startDate.minus(30, DateTimeUnit.DAY).toString(), endDate.toString()), endDate)
 
                 _statsData.value = StatsData(
                     labels = labels,
@@ -113,7 +158,8 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                     totalCounts = total,
                     overallCompleted = allTasks.count { it.isCompleted },
                     overallTotal = allTasks.size,
-                    streak = streak
+                    streak = streak,
+                    dateRangeText = dateRangeText
                 )
             } catch (_: Exception) {
                 _statsData.value = StatsData()
@@ -129,7 +175,7 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
         while (true) {
             val dayTasks = tasks.filter { it.date == date.toString() }
             if (dayTasks.isEmpty()) break
-            if (dayTasks.all { it.isCompleted }) {
+            if (dayTasks.isNotEmpty() && dayTasks.all { it.isCompleted }) {
                 streak++
                 date = date.minus(1, DateTimeUnit.DAY)
             } else {

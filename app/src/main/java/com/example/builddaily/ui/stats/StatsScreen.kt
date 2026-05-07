@@ -19,6 +19,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -26,6 +28,10 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,6 +68,7 @@ fun StatsScreen(
 ) {
     val viewModel = remember { StatsViewModel(repository) }
     val period by viewModel.period.collectAsState()
+    val referenceDate by viewModel.referenceDate.collectAsState()
     val statsData by viewModel.statsData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -116,6 +123,52 @@ fun StatsScreen(
                         ) {
                             Text(p.name.lowercase().replaceFirstChar { it.uppercase() })
                         }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Period Navigation
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { viewModel.navigate(false) },
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                            .size(40.dp)
+                    ) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back", tint = ElectricBlue)
+                    }
+
+                    Text(
+                        text = statsData.dateRangeText,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    val isAtToday = remember(referenceDate, period) {
+                        referenceDate >= com.example.builddaily.util.today()
+                    }
+
+                    IconButton(
+                        onClick = { viewModel.navigate(true) },
+                        enabled = !isAtToday,
+                        modifier = Modifier
+                            .background(
+                                if (isAtToday) Color.Transparent else Color.White.copy(alpha = 0.05f),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            contentDescription = "Forward",
+                            tint = if (isAtToday) Color.White.copy(alpha = 0.2f) else ElectricBlue
+                        )
                     }
                 }
 

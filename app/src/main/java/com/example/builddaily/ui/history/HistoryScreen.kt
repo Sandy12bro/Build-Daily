@@ -1,6 +1,5 @@
 package com.example.builddaily.ui.history
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,7 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color as GraphicsColor
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -42,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.builddaily.data.repository.TaskRepository
@@ -75,7 +73,7 @@ fun HistoryScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = GraphicsColor.Transparent),
                 title = {
                     Column {
                         com.example.builddaily.ui.components.AppTitleWithLogo("History")
@@ -110,105 +108,15 @@ fun HistoryScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     itemsIndexed(tasks, key = { _, task -> task.id }) { index, task ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Min)
-                        ) {
-                            // Timeline visual elements
-                            val taskColor = remember(task.title, task.colorHex) {
-                                if (!task.colorHex.isNullOrBlank()) {
-                                    try { Color(task.colorHex.toColorInt()) } catch (_: Exception) { MaterialTheme.colorScheme.primary }
-                                } else {
-                                    val colorIndex = kotlin.math.abs(task.title.hashCode()) % com.example.builddaily.ui.theme.TaskCategoryColors.size
-                                    com.example.builddaily.ui.theme.TaskCategoryColors[colorIndex]
-                                }
-                            }
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.width(40.dp)
-                            ) {
-                                // Line above the dot
-                                Box(
-                                    modifier = Modifier
-                                        .width(1.5.dp)
-                                        .weight(1f)
-                                        .background(
-                                            Brush.verticalGradient(
-                                                colors = listOf(
-                                                    if (index == 0) Color.Transparent else Color.White.copy(alpha = 0.05f),
-                                                    Color.White.copy(alpha = 0.15f)
-                                                )
-                                            )
-                                        )
-                                )
-                                
-                                // The schedule dot with glow
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.padding(vertical = 4.dp)
-                                ) {
-                                    if (!task.isCompleted) {
-                                        // Subtle outer glow
-                                        Box(
-                                            modifier = Modifier
-                                                .size(20.dp)
-                                                .background(
-                                                    Brush.radialGradient(
-                                                        colors = listOf(taskColor.copy(alpha = 0.2f), Color.Transparent)
-                                                    ),
-                                                    CircleShape
-                                                )
-                                        )
-                                    }
-                                    
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                if (task.isCompleted) Color.White.copy(alpha = 0.15f) 
-                                                else taskColor
-                                            )
-                                            .border(
-                                                width = 1.dp,
-                                                color = if (task.isCompleted) Color.Transparent else Color.White.copy(alpha = 0.4f),
-                                                shape = CircleShape
-                                            )
-                                    )
-                                }
-                                
-                                // Line below the dot
-                                Box(
-                                    modifier = Modifier
-                                        .width(1.5.dp)
-                                        .weight(1f)
-                                        .background(
-                                            Brush.verticalGradient(
-                                                colors = listOf(
-                                                    Color.White.copy(alpha = 0.15f),
-                                                    if (index == tasks.size - 1) Color.Transparent else Color.White.copy(alpha = 0.05f)
-                                                )
-                                            )
-                                        )
-                                )
-                            }
-                            
-                            // Task card content
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(bottom = 20.dp, start = 4.dp)
-                            ) {
-                                TaskCard(
-                                    task = task,
-                                    onToggleComplete = { viewModel.toggleTaskCompletion(task) },
-                                    onDelete = { viewModel.deleteTask(task) },
-                                    onEdit = { onEditTask(task.id) }
-                                )
-                            }
-                        }
+                        HistoryTimelineItem(
+                            index = index,
+                            task = task,
+                            totalTasks = tasks.size,
+                            onToggleComplete = { _ -> viewModel.toggleTaskCompletion(task) },
+                            onDelete = { viewModel.deleteTask(task) },
+                            onEdit = { onEditTask(task.id) },
+                            onRepeat = { viewModel.repeatTask(task) }
+                        )
                     }
                 }
             }
@@ -238,6 +146,122 @@ fun HistoryScreen(
             )
         ) {
             DatePicker(state = datePickerState)
+        }
+    }
+}
+
+@Composable
+private fun HistoryTimelineItem(
+    index: Int,
+    task: com.example.builddaily.data.model.Task,
+    totalTasks: Int,
+    onToggleComplete: (Boolean) -> Unit,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    onRepeat: () -> Unit
+) {
+    val taskColor = remember(task.title, task.colorHex) {
+        if (!task.colorHex.isNullOrBlank()) {
+            try { GraphicsColor(task.colorHex.toColorInt()) } catch (_: Exception) { com.example.builddaily.ui.theme.CyberPurple }
+        } else {
+            val colorIndex = kotlin.math.abs(task.title.hashCode()) % com.example.builddaily.ui.theme.TaskCategoryColors.size
+            com.example.builddaily.ui.theme.TaskCategoryColors[colorIndex]
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(40.dp)
+        ) {
+            // Line above the dot
+            Box(
+                modifier = Modifier
+                    .width(1.5.dp)
+                    .weight(1f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                if (index == 0) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.05f),
+                                GraphicsColor.White.copy(alpha = 0.15f)
+                            )
+                        )
+                    )
+            )
+            
+            // The schedule dot with glow
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                val dotColor = if (task.isCompleted) {
+                    GraphicsColor.White.copy(alpha = 0.2f)
+                } else {
+                    taskColor
+                }
+                if (!task.isCompleted) {
+                    // Subtle outer glow
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(taskColor.copy(alpha = 0.2f), GraphicsColor.Transparent)
+                                ),
+                                CircleShape
+                            )
+                    )
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (task.isCompleted) GraphicsColor.White.copy(alpha = 0.15f) 
+                            else dotColor
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = if (task.isCompleted) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.4f),
+                            shape = CircleShape
+                        )
+                )
+            }
+            
+            // Line below the dot
+            Box(
+                modifier = Modifier
+                    .width(1.5.dp)
+                    .weight(1f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                GraphicsColor.White.copy(alpha = 0.15f),
+                                if (index == totalTasks - 1) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.05f)
+                            )
+                        )
+                    )
+            )
+        }
+        
+        // Task card content
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = 20.dp, start = 4.dp)
+        ) {
+            TaskCard(
+                task = task,
+                onToggleComplete = onToggleComplete,
+                onDelete = onDelete,
+                onEdit = onEdit,
+                onRepeat = onRepeat
+            )
         }
     }
 }

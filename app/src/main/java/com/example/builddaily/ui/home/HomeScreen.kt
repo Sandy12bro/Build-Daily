@@ -77,7 +77,7 @@ fun HomeScreen(
                     Brush.radialGradient(
                         colors = listOf(
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                            Color.Transparent
+                            GraphicsColor.Transparent
                         ),
                         center = androidx.compose.ui.geometry.Offset(1000f, 0f),
                         radius = 800f
@@ -86,10 +86,10 @@ fun HomeScreen(
         )
 
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = GraphicsColor.Transparent,
             topBar = {
                 TopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = GraphicsColor.Transparent),
                 title = {
                     Column {
                         com.example.builddaily.ui.components.AppTitleWithLogo("Build Daily")
@@ -107,7 +107,7 @@ fun HomeScreen(
                 FloatingActionButton(
                     onClick = onAddTask,
                     containerColor = ElectricBlue,
-                    contentColor = Color.Black,
+                    contentColor = GraphicsColor.Black,
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add task", modifier = Modifier.size(28.dp))
@@ -138,7 +138,7 @@ fun HomeScreen(
                                 text = "Day Progress",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = GraphicsColor.White
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             val emoji = when {
@@ -168,7 +168,7 @@ fun HomeScreen(
                             text = "$completedCount/$totalCount",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else Color.White.copy(alpha = 0.5f)
+                            color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else GraphicsColor.White.copy(alpha = 0.5f)
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -180,11 +180,11 @@ fun HomeScreen(
                             .clip(RoundedCornerShape(7.dp))
                             .border(
                                 width = 1.dp,
-                                color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen.copy(alpha = 0.3f) else Color.Transparent,
+                                color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen.copy(alpha = 0.3f) else GraphicsColor.Transparent,
                                 shape = RoundedCornerShape(7.dp)
                             ),
                         color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else com.example.builddaily.ui.theme.CyberPurple,
-                        trackColor = Color.White.copy(alpha = 0.05f),
+                        trackColor = GraphicsColor.White.copy(alpha = 0.05f),
                         strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                     )
                 }
@@ -203,7 +203,7 @@ fun HomeScreen(
                         !isLoading && tasks.isEmpty() -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("No tasks for today", style = MaterialTheme.typography.titleMedium, color = Color.White.copy(alpha = 0.6f))
+                                    Text("No tasks for today", style = MaterialTheme.typography.titleMedium, color = GraphicsColor.White.copy(alpha = 0.6f))
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         "Tap + to add a task",
@@ -219,112 +219,132 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 itemsIndexed(tasks, key = { _, task -> task.id }) { index, task ->
-                                    val taskColor = remember(task.title, task.colorHex) {
-                                        if (!task.colorHex.isNullOrBlank()) {
-                                            try { GraphicsColor(task.colorHex.toColorInt()) } catch (_: Exception) { CyberPurple }
-                                        } else {
-                                            val colorIndex = kotlin.math.abs(task.title.hashCode()) % com.example.builddaily.ui.theme.TaskCategoryColors.size
-                                            com.example.builddaily.ui.theme.TaskCategoryColors[colorIndex]
-                                        }
-                                    }
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(IntrinsicSize.Min)
-                                    ) {
-                                        // Timeline visual elements
-
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.width(40.dp)
-                                        ) {
-                                            // Line above the dot
-                                            Box(
-                                                modifier = Modifier
-                                                    .width(1.5.dp)
-                                                    .weight(1f)
-                                                    .background(
-                                                        Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                if (index == 0) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.05f),
-                                                                GraphicsColor.White.copy(alpha = 0.15f)
-                                                            )
-                                                        )
-                                                    )
-                                            )
-                                            
-                                            // The schedule dot with glow
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.padding(vertical = 4.dp)
-                                            ) {
-                                                if (!task.isCompleted) {
-                                                    // Subtle outer glow
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(20.dp)
-                                                            .background(
-                                                                Brush.radialGradient(
-                                                                    colors = listOf(taskColor.copy(alpha = 0.2f), GraphicsColor.Transparent)
-                                                                ),
-                                                                CircleShape
-                                                            )
-                                                    )
-                                                }
-                                                
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(10.dp)
-                                                        .clip(CircleShape)
-                                                        .background(
-                                                            if (task.isCompleted) GraphicsColor.White.copy(alpha = 0.15f) 
-                                                            else taskColor
-                                                        )
-                                                        .border(
-                                                            width = 1.dp,
-                                                            color = if (task.isCompleted) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.4f),
-                                                            shape = CircleShape
-                                                        )
-                                                )
-                                            }
-                                            
-                                            // Line below the dot
-                                            Box(
-                                                modifier = Modifier
-                                                    .width(1.5.dp)
-                                                    .weight(1f)
-                                                    .background(
-                                                        Brush.verticalGradient(
-                                                            colors = listOf(
-                                                                GraphicsColor.White.copy(alpha = 0.15f),
-                                                                if (index == tasks.size - 1) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.05f)
-                                                            )
-                                                        )
-                                                    )
-                                            )
-                                        }
-                                        
-                                        // Task card content
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .padding(bottom = 20.dp, start = 4.dp)
-                                        ) {
-                                            TaskCard(
-                                                task = task,
-                                                onToggleComplete = { viewModel.toggleTaskCompletion(task) },
-                                                onDelete = { viewModel.deleteTask(task) },
-                                                onEdit = { onEditTask(task.id) }
-                                            )
-                                        }
-                                    }
+                                    TaskTimelineItem(
+                                        index = index,
+                                        task = task,
+                                        totalTasks = tasks.size,
+                                        onToggleComplete = { _ -> viewModel.toggleTaskCompletion(task) },
+                                        onDelete = { viewModel.deleteTask(task) },
+                                        onEdit = { onEditTask(task.id) },
+                                        onRepeat = { viewModel.repeatTask(task) }
+                                    )
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TaskTimelineItem(
+    index: Int,
+    task: com.example.builddaily.data.model.Task,
+    totalTasks: Int,
+    onToggleComplete: (Boolean) -> Unit,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    onRepeat: () -> Unit
+) {
+    val taskColor = remember(task.title, task.colorHex) {
+        if (!task.colorHex.isNullOrBlank()) {
+            try { GraphicsColor(task.colorHex.toColorInt()) } catch (_: Exception) { com.example.builddaily.ui.theme.CyberPurple }
+        } else {
+            val colorIndex = kotlin.math.abs(task.title.hashCode()) % com.example.builddaily.ui.theme.TaskCategoryColors.size
+            com.example.builddaily.ui.theme.TaskCategoryColors[colorIndex]
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(40.dp)
+        ) {
+            // Line above the dot
+            Box(
+                modifier = Modifier
+                    .width(1.5.dp)
+                    .weight(1f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                if (index == 0) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.05f),
+                                GraphicsColor.White.copy(alpha = 0.15f)
+                            )
+                        )
+                    )
+            )
+            
+            // The schedule dot with glow
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                if (!task.isCompleted) {
+                    // Subtle outer glow
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(taskColor.copy(alpha = 0.2f), GraphicsColor.Transparent)
+                                ),
+                                CircleShape
+                            )
+                    )
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (task.isCompleted) GraphicsColor.White.copy(alpha = 0.15f) 
+                            else taskColor
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = if (task.isCompleted) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.4f),
+                            shape = CircleShape
+                        )
+                )
+            }
+            
+            // Line below the dot
+            Box(
+                modifier = Modifier
+                    .width(1.5.dp)
+                    .weight(1f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                GraphicsColor.White.copy(alpha = 0.15f),
+                                if (index == totalTasks - 1) GraphicsColor.Transparent else GraphicsColor.White.copy(alpha = 0.05f)
+                            )
+                        )
+                    )
+            )
+        }
+        
+        // Task card content
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = 20.dp, start = 4.dp)
+        ) {
+            TaskCard(
+                task = task,
+                onToggleComplete = onToggleComplete,
+                onDelete = onDelete,
+                onEdit = onEdit,
+                onRepeat = onRepeat
+            )
         }
     }
 }
