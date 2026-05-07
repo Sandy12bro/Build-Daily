@@ -1,8 +1,6 @@
 package com.example.builddaily.ui.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +20,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,24 +34,32 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.builddaily.ui.components.AppTitleWithLogo
+
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+import android.content.Intent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun MoreScreen(onNavigateToNotifications: () -> Unit) {
+    val context = LocalContext.current
+    var showShareDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                title = { AppTitleWithLogo("Profile", showLogo = false) }
+                title = { AppTitleWithLogo("More", showLogo = false) }
             )
         }
     ) { padding ->
@@ -60,71 +68,76 @@ fun ProfileScreen() {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Profile Image with Glow
-            Box(contentAlignment = Alignment.Center) {
-                Box(
-                    modifier = Modifier
-                        .size(110.dp)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                    Color.Transparent
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                )
-                Box(
-                    modifier = Modifier
-                        .size(90.dp)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("💪", fontSize = 40.sp)
+            MoreOption(
+                Icons.Default.Notifications, 
+                "Notifications", 
+                "Task reminders and alerts"
+            ) {
+                onNavigateToNotifications()
+            }
+            
+            MoreOption(
+                Icons.Default.Share, 
+                "Share App", 
+                "Share Build Daily via Link or APK"
+            ) {
+                showShareDialog = true
+            }
+        }
+    }
+
+    if (showShareDialog) {
+        AlertDialog(
+            onDismissRequest = { showShareDialog = false },
+            title = { Text("Share Build Daily", color = Color.White) },
+            text = { Text("How would you like to share the app?", color = Color.White.copy(alpha = 0.7f)) },
+            containerColor = Color(0xFF1E1E1E),
+            confirmButton = {
+                TextButton(onClick = {
+                    showShareDialog = false
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, "Build Daily - Track your progress and crush your goals! Download here: https://builddaily.app")
+                        type = "text/plain"
                     }
+                    context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
+                }) {
+                    Text("Share Link", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showShareDialog = false
+                    try {
+                        val apkFile = File(context.applicationInfo.sourceDir)
+                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            type = "application/vnd.android.package-archive"
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, "Share APK"))
+                    } catch (e: Exception) {
+                        // Handle error
+                    }
+                }) {
+                    Text("Share APK", color = MaterialTheme.colorScheme.primary)
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "Build User",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Text(
-                "Level 5 - Daily Builder",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Settings Options
-            ProfileOption(Icons.Default.Settings, "Account Settings", "Manage your profile details")
-            ProfileOption(Icons.Default.Notifications, "Notifications", "Task reminders and alerts")
-            ProfileOption(Icons.Default.Security, "Privacy & Security", "Keep your data safe")
-            ProfileOption(Icons.Default.Info, "About", "Build Daily v1.0")
-        }
+        )
     }
 }
 
 @Composable
-fun ProfileOption(icon: ImageVector, title: String, subtitle: String) {
+fun MoreOption(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
     ) {

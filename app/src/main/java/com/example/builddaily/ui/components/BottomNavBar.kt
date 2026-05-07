@@ -22,7 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +43,7 @@ enum class BottomNavItem(val label: String, val icon: ImageVector, val route: St
     Home("Home", Icons.Default.Home, "home"),
     History("History", Icons.Default.History, "history"),
     Stats("Stats", Icons.Default.BarChart, "stats"),
-    Profile("Profile", Icons.Default.Person, "profile")
+    More("More", Icons.Default.MoreHoriz, "more")
 }
 
 @Composable

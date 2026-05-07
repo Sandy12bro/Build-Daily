@@ -49,6 +49,11 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
         loadStats()
     }
 
+    fun setReferenceDate(date: LocalDate) {
+        _referenceDate.value = date
+        loadStats()
+    }
+
     fun navigate(forward: Boolean) {
         val (value, unit) = when (_period.value) {
             StatsPeriod.DAILY -> 1 to DateTimeUnit.DAY
@@ -94,7 +99,11 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                     StatsPeriod.MONTHLY -> {
                         startDate = LocalDate(refDate.year, refDate.monthNumber, 1)
                         endDate = startDate.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
-                        labels = listOf("W1", "W2", "W3", "W4")
+                        val daysCount = endDate.dayOfMonth
+                        // Show labels for 1st, 5th, 10th, 15th, 20th, 25th, and last day
+                        labels = (1..daysCount).map { 
+                            if (it == 1 || it % 5 == 0 || it == daysCount) it.toString() else ""
+                        }
                         dateRangeText = "${refDate.month.name} ${refDate.year}"
                     }
                     StatsPeriod.YEARLY -> {
@@ -109,17 +118,16 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
 
                 val (completed, total) = when (_period.value) {
                     StatsPeriod.DAILY -> {
-                        // Group by 3-hour blocks
                         val blocks = (0..7).map { it * 3 }
                         val comp = blocks.map { b -> 
                             allTasks.count { 
-                                val hour = it.startTime.split(":")[0].toIntOrNull() ?: 0
+                                val hour = it.startTime.substringBefore(":").toIntOrNull() ?: 0
                                 hour >= b && hour < b + 3 && it.isCompleted 
                             }
                         }
                         val tot = blocks.map { b -> 
                             allTasks.count { 
-                                val hour = it.startTime.split(":")[0].toIntOrNull() ?: 0
+                                val hour = it.startTime.substringBefore(":").toIntOrNull() ?: 0
                                 hour >= b && hour < b + 3
                             }
                         }
@@ -132,20 +140,26 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                         comp to tot
                     }
                     StatsPeriod.MONTHLY -> {
-                        // Group by 7-day chunks (weeks)
-                        val weeks = (0..3).map { w ->
-                            val ws = startDate.plus(w * 7, DateTimeUnit.DAY).toString()
-                            val we = if (w == 3) endDate.toString() else startDate.plus(w * 7 + 6, DateTimeUnit.DAY).toString()
-                            ws to we
-                        }
-                        val comp = weeks.map { (s, e) -> allTasks.count { it.date >= s && it.date <= e && it.isCompleted } }
-                        val tot = weeks.map { (s, e) -> allTasks.count { it.date >= s && it.date <= e } }
+                        val daysCount = endDate.dayOfMonth
+                        val days = (0 until daysCount).map { startDate.plus(it, DateTimeUnit.DAY).toString() }
+                        val comp = days.map { d -> allTasks.count { it.date == d && it.isCompleted } }
+                        val tot = days.map { d -> allTasks.count { it.date == d } }
                         comp to tot
                     }
                     StatsPeriod.YEARLY -> {
                         val months = (1..12)
-                        val comp = months.map { m -> allTasks.count { LocalDate.parse(it.date).monthNumber == m && it.isCompleted } }
-                        val tot = months.map { m -> allTasks.count { LocalDate.parse(it.date).monthNumber == m } }
+                        val comp = months.map { m -> 
+                            allTasks.count { 
+                                val month = it.date.substring(5, 7).toIntOrNull() ?: 0
+                                month == m && it.isCompleted 
+                            } 
+                        }
+                        val tot = months.map { m -> 
+                            allTasks.count { 
+                                val month = it.date.substring(5, 7).toIntOrNull() ?: 0
+                                month == m
+                            }
+                        }
                         comp to tot
                     }
                 }

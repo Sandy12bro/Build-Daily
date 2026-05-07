@@ -23,6 +23,12 @@ fun LocalDate.toEpochMillis(): Long {
     return javaDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
 }
 
+fun fromEpochMillis(millis: Long): LocalDate {
+    val instant = java.time.Instant.ofEpochMilli(millis)
+    val javaDate = instant.atZone(java.time.ZoneId.of("UTC")).toLocalDate()
+    return LocalDate(javaDate.year, javaDate.monthValue, javaDate.dayOfMonth)
+}
+
 fun formatTime(time: String): String {
     val parts = time.split(":")
     if (parts.size < 2) return time

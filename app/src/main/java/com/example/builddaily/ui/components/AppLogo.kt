@@ -1,5 +1,6 @@
 package com.example.builddaily.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -11,34 +12,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.builddaily.R
+
 
 @Composable
 fun AppLogo(size: Dp = 40.dp) {
-    Box(
+    Image(
+        painter = painterResource(id = R.drawable.app_logo_final),
+        contentDescription = "App Logo",
         modifier = Modifier
             .size(size)
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                    )
-                ),
-                shape = CircleShape
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "💪",
-            fontSize = (size.value * 0.6).sp
-        )
-    }
+            .clip(CircleShape)
+    )
 }
 
 @Composable

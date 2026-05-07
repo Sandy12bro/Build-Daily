@@ -7,6 +7,7 @@ import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 
 import android.content.Context
+import com.example.builddaily.util.TaskScheduler
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -62,15 +63,18 @@ class TaskRepository(private val context: Context, val deviceId: String) {
     }
 
     suspend fun insertTask(task: Task): Task {
-        if (isDemoMode) {
+        val insertedTask = if (isDemoMode) {
             val newTask = task.copy(id = java.util.UUID.randomUUID().toString())
             mockTasks.add(newTask)
             saveDemoTasks()
-            return newTask
+            newTask
+        } else {
+            SupabaseClient.client.from(table)
+                .insert(task) { select() }
+                .decodeSingle<Task>()
         }
-        return SupabaseClient.client.from(table)
-            .insert(task) { select() }
-            .decodeSingle<Task>()
+        TaskScheduler.scheduleTaskNotification(context, insertedTask)
+        return insertedTask
     }
 
     suspend fun updateTaskCompletion(taskId: String, isCompleted: Boolean) {
@@ -92,12 +96,13 @@ class TaskRepository(private val context: Context, val deviceId: String) {
         if (isDemoMode) {
             mockTasks.removeAll { it.id == taskId }
             saveDemoTasks()
-            return
+        } else {
+            SupabaseClient.client.from(table)
+                .delete {
+                    filter { eq("id", taskId) }
+                }
         }
-        SupabaseClient.client.from(table)
-            .delete {
-                filter { eq("id", taskId) }
-            }
+        TaskScheduler.cancelTaskNotification(context, Task(id = taskId))
     }
 
     suspend fun updateTask(task: Task) {
@@ -107,12 +112,13 @@ class TaskRepository(private val context: Context, val deviceId: String) {
                 mockTasks[index] = task
                 saveDemoTasks()
             }
-            return
+        } else {
+            SupabaseClient.client.from(table)
+                .update(task) {
+                    filter { eq("id", task.id) }
+                }
         }
-        SupabaseClient.client.from(table)
-            .update(task) {
-                filter { eq("id", task.id) }
-            }
+        TaskScheduler.scheduleTaskNotification(context, task)
     }
 
     suspend fun getTasksInRange(startDate: String, endDate: String): List<Task> {

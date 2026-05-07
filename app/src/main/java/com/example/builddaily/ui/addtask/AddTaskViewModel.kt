@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.builddaily.data.model.Task
 import com.example.builddaily.data.repository.TaskRepository
+import com.example.builddaily.util.ActionMessageManager
+import com.example.builddaily.util.ActionType
 import com.example.builddaily.util.today
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -107,6 +109,7 @@ class AddTaskViewModel(
                         colorHex = colorHex.value
                     )
                     repository.updateTask(updatedTask)
+                    ActionMessageManager.emit("Task updated ✨", ActionType.UPDATED)
                 } else {
                     val task = Task(
                         deviceId = deviceId,
@@ -118,6 +121,7 @@ class AddTaskViewModel(
                         colorHex = colorHex.value
                     )
                     repository.insertTask(task)
+                    ActionMessageManager.emit("Task added successfully! 💪", ActionType.ADDED)
                 }
                 _saveSuccess.value = true
             } catch (e: Exception) {
