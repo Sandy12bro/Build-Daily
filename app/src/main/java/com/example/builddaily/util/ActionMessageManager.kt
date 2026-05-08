@@ -13,10 +13,12 @@ data class ActionMessage(
 )
 
 object ActionMessageManager {
-    private val _messages = MutableSharedFlow<ActionMessage>()
+    private val _messages = MutableSharedFlow<ActionMessage>(
+        extraBufferCapacity = 5
+    )
     val messages = _messages.asSharedFlow()
 
-    suspend fun emit(message: String, type: ActionType) {
-        _messages.emit(ActionMessage(type, message))
+    fun postMessage(message: String, type: ActionType) {
+        _messages.tryEmit(ActionMessage(type, message))
     }
 }

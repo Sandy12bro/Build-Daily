@@ -48,7 +48,7 @@ class HomeViewModel(private val repository: TaskRepository) : ViewModel() {
                 _tasks.value = _tasks.value.map {
                     if (it.id == task.id) it.copy(isCompleted = newStatus) else it
                 }
-                ActionMessageManager.emit(
+                ActionMessageManager.postMessage(
                     if (newStatus) "Task completed! 🤩" else "Task set to incomplete",
                     if (newStatus) ActionType.COMPLETED else ActionType.INCOMPLETE
                 )
@@ -63,7 +63,7 @@ class HomeViewModel(private val repository: TaskRepository) : ViewModel() {
             try {
                 repository.deleteTask(task.id)
                 _tasks.value = _tasks.value.filter { it.id != task.id }
-                ActionMessageManager.emit("Task deleted 🗑️", ActionType.DELETED)
+                ActionMessageManager.postMessage("Task deleted 🗑️", ActionType.DELETED)
             } catch (e: Exception) {
                 _error.value = e.message
             }
@@ -80,7 +80,7 @@ class HomeViewModel(private val repository: TaskRepository) : ViewModel() {
                     createdAt = kotlinx.datetime.Clock.System.now().toString()
                 )
                 repository.insertTask(newTask)
-                ActionMessageManager.emit("Task repeated for today 🔄", ActionType.REPEATED)
+                ActionMessageManager.postMessage("Task repeated for today 🔄", ActionType.REPEATED)
                 loadTasks() // Reload to show the new duplicated task
             } catch (e: Exception) {
                 _error.value = e.message

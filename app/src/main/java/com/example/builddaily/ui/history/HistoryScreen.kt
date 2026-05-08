@@ -112,9 +112,24 @@ fun HistoryScreen(
                             index = index,
                             task = task,
                             totalTasks = tasks.size,
-                            onToggleComplete = { _ -> viewModel.toggleTaskCompletion(task) },
-                            onDelete = { viewModel.deleteTask(task) },
-                            onEdit = { onEditTask(task.id) },
+                            onToggleComplete = { 
+                                com.example.builddaily.util.ActionMessageManager.postMessage(
+                                    "History records cannot be modified 🔒", 
+                                    com.example.builddaily.util.ActionType.INCOMPLETE
+                                )
+                            },
+                            onDelete = { 
+                                com.example.builddaily.util.ActionMessageManager.postMessage(
+                                    "History cannot be deleted 🔒", 
+                                    com.example.builddaily.util.ActionType.INCOMPLETE
+                                )
+                            },
+                            onEdit = { 
+                                com.example.builddaily.util.ActionMessageManager.postMessage(
+                                    "Completed history cannot be edited ✨", 
+                                    com.example.builddaily.util.ActionType.INCOMPLETE
+                                )
+                            },
                             onRepeat = { viewModel.repeatTask(task) }
                         )
                     }

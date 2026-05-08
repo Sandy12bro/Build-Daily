@@ -68,46 +68,60 @@ fun TaskCard(
         }
     }
 
-    val cardAlpha = if (task.isCompleted) 0.3f else 0.8f
-    val surfaceColor = MaterialTheme.colorScheme.surface
+    val cardAlpha = if (task.isCompleted) 0.5f else 1f
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clickable { isExpanded = !isExpanded }
+            .padding(vertical = 6.dp)
             .shadow(
-                elevation = if (task.isCompleted) 0.dp else 12.dp,
-                shape = RoundedCornerShape(24.dp),
+                elevation = if (isExpanded) 12.dp else 0.dp,
+                shape = RoundedCornerShape(20.dp),
+                ambientColor = categoryColor.copy(alpha = 0.5f),
                 spotColor = categoryColor.copy(alpha = 0.5f)
-            ),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = cardAlpha)),
+            )
+            .clickable { isExpanded = !isExpanded },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            categoryColor.copy(alpha = 0.15f),
-                            Color.Transparent
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.02f)
                         )
                     )
                 )
                 .border(
                     width = 1.dp,
                     brush = Brush.linearGradient(
-                        colors = listOf(
-                            categoryColor.copy(alpha = 0.4f),
-                            Color.Transparent,
-                            categoryColor.copy(alpha = 0.1f)
+                        listOf(
+                            Color.White.copy(alpha = 0.15f),
+                            categoryColor.copy(alpha = 0.1f),
+                            Color.Transparent
                         )
                     ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(20.dp)
                 )
         ) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // Color accent bar with glow
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(categoryColor, categoryColor.copy(alpha = 0.3f))
+                        )
+                    )
+            )
+
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -228,6 +242,7 @@ fun TaskCard(
                             }
                         }
                     }
+                }
                 }
             }
         }

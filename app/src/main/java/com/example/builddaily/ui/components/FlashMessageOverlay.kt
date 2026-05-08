@@ -36,13 +36,13 @@ fun FlashMessageOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.TopCenter
+            .padding(bottom = 90.dp, start = 32.dp, end = 32.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
         AnimatedVisibility(
             visible = currentMessage != null,
-            enter = slideInVertically { -it } + fadeIn(),
-            exit = slideOutVertically { -it } + fadeOut()
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut()
         ) {
             currentMessage?.let { msg ->
                 val (color, icon) = when (msg.type) {
@@ -56,9 +56,9 @@ fun FlashMessageOverlay() {
 
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    shape = RoundedCornerShape(20.dp),
+                        .wrapContentWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
                     color = Color.Black.copy(alpha = 0.9f),
                     tonalElevation = 8.dp,
                     border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f))

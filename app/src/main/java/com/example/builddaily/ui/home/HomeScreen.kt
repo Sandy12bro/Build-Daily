@@ -19,9 +19,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.core.graphics.toColorInt
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
+import com.example.builddaily.ui.theme.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +38,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -65,11 +70,30 @@ fun HomeScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    var showConfetti by remember { mutableStateOf(false) }
+    var lastCompletedCount by remember { mutableIntStateOf(-1) }
+    
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
     LaunchedEffect(Unit) {
         viewModel.loadTasks()
     }
 
+    // Detect when all tasks are completed
+    LaunchedEffect(tasks) {
+        val completedCount = tasks.count { it.isCompleted }
+        val totalCount = tasks.size
+        
+        // Trigger confetti only if we just reached 100% and we had tasks
+        if (totalCount > 0 && completedCount == totalCount && lastCompletedCount != -1 && lastCompletedCount < totalCount) {
+            showConfetti = true
+        }
+        lastCompletedCount = completedCount
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        // Galactic Background
+        com.example.builddaily.ui.components.GalacticBackground()
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -223,7 +247,10 @@ fun HomeScreen(
                                         index = index,
                                         task = task,
                                         totalTasks = tasks.size,
-                                        onToggleComplete = { _ -> viewModel.toggleTaskCompletion(task) },
+                                        onToggleComplete = { _ -> 
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                            viewModel.toggleTaskCompletion(task) 
+                                        },
                                         onDelete = { viewModel.deleteTask(task) },
                                         onEdit = { onEditTask(task.id) },
                                         onRepeat = { viewModel.repeatTask(task) }
@@ -231,6 +258,72 @@ fun HomeScreen(
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // Celebration Overlay
+        AnimatedVisibility(
+            visible = showConfetti,
+            enter = fadeIn(tween(800)) + scaleIn(tween(800, easing = FastOutSlowInEasing)),
+            exit = fadeOut(tween(1000)) + scaleOut(tween(1000))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(GraphicsColor.Black.copy(alpha = 0.85f))
+                    .clickable(enabled = false) { /* Block clicks to content behind */ },
+                contentAlignment = Alignment.Center
+            ) {
+                com.example.builddaily.ui.components.ConfettiCelebration(onFinished = { showConfetti = false })
+                
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(GraphicsColor.White.copy(alpha = 0.1f), GraphicsColor.Transparent)
+                            ),
+                            RoundedCornerShape(32.dp)
+                        )
+                        .border(1.dp, GraphicsColor.White.copy(alpha = 0.1f), RoundedCornerShape(32.dp))
+                        .padding(32.dp)
+                ) {
+                    Text(
+                        "🤩",
+                        fontSize = 64.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Text(
+                        "WELL DONE!",
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Black,
+                            brush = Brush.linearGradient(
+                                colors = listOf(ElectricBlue, CyberPurple, MintGreen)
+                            ),
+                            letterSpacing = 2.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "All daily tasks completed",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = GraphicsColor.White.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(GraphicsColor.White.copy(alpha = 0.1f))
+                            .clickable { showConfetti = false }
+                            .padding(horizontal = 24.dp, vertical = 12.dp)
+                    ) {
+                        Text("Continue", color = GraphicsColor.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }

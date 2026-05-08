@@ -38,7 +38,14 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
         label = "Scale"
     )
 
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { }
+
     LaunchedEffect(key1 = true) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
         startAnimation = true
         delay(2000)
         onAnimationFinished()

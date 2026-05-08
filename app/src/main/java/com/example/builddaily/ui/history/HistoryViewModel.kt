@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
+import com.example.builddaily.util.ActionMessageManager
+import com.example.builddaily.util.ActionType
+
 class HistoryViewModel(private val repository: TaskRepository) : ViewModel() {
 
     private val _selectedDate = MutableStateFlow(today())
@@ -39,27 +42,6 @@ class HistoryViewModel(private val repository: TaskRepository) : ViewModel() {
         }
     }
 
-    fun toggleTaskCompletion(task: Task) {
-        viewModelScope.launch {
-            try {
-                val newStatus = !task.isCompleted
-                repository.updateTaskCompletion(task.id, newStatus)
-                _tasks.value = _tasks.value.map {
-                    if (it.id == task.id) it.copy(isCompleted = newStatus) else it
-                }
-            } catch (_: Exception) {}
-        }
-    }
-
-    fun deleteTask(task: Task) {
-        viewModelScope.launch {
-            try {
-                repository.deleteTask(task.id)
-                _tasks.value = _tasks.value.filter { it.id != task.id }
-            } catch (_: Exception) {}
-        }
-    }
-
     fun repeatTask(task: Task) {
         viewModelScope.launch {
             try {
@@ -70,7 +52,10 @@ class HistoryViewModel(private val repository: TaskRepository) : ViewModel() {
                     createdAt = kotlinx.datetime.Clock.System.now().toString()
                 )
                 repository.insertTask(newTask)
-            } catch (_: Exception) {}
+                ActionMessageManager.postMessage("Task repeated for today 🔄", ActionType.REPEATED)
+            } catch (_: Exception) {
+                ActionMessageManager.postMessage("Failed to repeat task", ActionType.INCOMPLETE)
+            }
         }
     }
 }

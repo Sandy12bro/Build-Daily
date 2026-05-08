@@ -15,6 +15,19 @@ import kotlinx.datetime.plus
 
 enum class StatsPeriod { DAILY, WEEKLY, MONTHLY, YEARLY }
 
+data class Quadruple<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D
+)
+
+data class DayActivity(
+    val completed: Int = 0,
+    val total: Int = 0,
+    val percentage: Float = 0f
+)
+
 data class StatsData(
     val labels: List<String> = emptyList(),
     val completedCounts: List<Int> = emptyList(),
@@ -22,7 +35,8 @@ data class StatsData(
     val overallCompleted: Int = 0,
     val overallTotal: Int = 0,
     val streak: Int = 0,
-    val dateRangeText: String = ""
+    val dateRangeText: String = "",
+    val heatmapData: Map<String, DayActivity> = emptyMap()
 )
 
 class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
@@ -87,7 +101,14 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                     StatsPeriod.DAILY -> {
                         startDate = refDate
                         endDate = refDate
-                        labels = listOf("00", "03", "06", "09", "12", "15", "18", "21")
+                        labels = (0..23).map { h -> 
+                            when {
+                                h == 0 -> "12 AM"
+                                h < 12 -> "$h AM"
+                                h == 12 -> "12 PM"
+                                else -> "${h - 12} PM"
+                            }
+                        }
                         dateRangeText = "${refDate.dayOfMonth} ${refDate.month.name.take(3)} ${refDate.year}"
                     }
                     StatsPeriod.WEEKLY -> {
@@ -100,10 +121,7 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                         startDate = LocalDate(refDate.year, refDate.monthNumber, 1)
                         endDate = startDate.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
                         val daysCount = endDate.dayOfMonth
-                        // Show labels for 1st, 5th, 10th, 15th, 20th, 25th, and last day
-                        labels = (1..daysCount).map { 
-                            if (it == 1 || it % 5 == 0 || it == daysCount) it.toString() else ""
-                        }
+                        labels = (1..daysCount).map { it.toString() }
                         dateRangeText = "${refDate.month.name} ${refDate.year}"
                     }
                     StatsPeriod.YEARLY -> {
@@ -118,17 +136,17 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
 
                 val (completed, total) = when (_period.value) {
                     StatsPeriod.DAILY -> {
-                        val blocks = (0..7).map { it * 3 }
-                        val comp = blocks.map { b -> 
+                        val blocks = (0..23)
+                        val comp = blocks.map { h -> 
                             allTasks.count { 
                                 val hour = it.startTime.substringBefore(":").toIntOrNull() ?: 0
-                                hour >= b && hour < b + 3 && it.isCompleted 
+                                hour == h && it.isCompleted 
                             }
                         }
-                        val tot = blocks.map { b -> 
+                        val tot = blocks.map { h -> 
                             allTasks.count { 
                                 val hour = it.startTime.substringBefore(":").toIntOrNull() ?: 0
-                                hour >= b && hour < b + 3
+                                hour == h
                             }
                         }
                         comp to tot
@@ -166,6 +184,19 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
 
                 val streak = calculateStreak(repository.getTasksInRange(startDate.minus(30, DateTimeUnit.DAY).toString(), endDate.toString()), endDate)
 
+                // Heatmap logic: Get tasks for last 365 days
+                val heatmapStartDate = today().minus(364, DateTimeUnit.DAY)
+                val yearTasks = repository.getTasksInRange(heatmapStartDate.toString(), today().toString())
+                val heatmapMap = yearTasks.groupBy { it.date }.mapValues { (_, tasks) ->
+                    val comp = tasks.count { it.isCompleted }
+                    val tot = tasks.size
+                    DayActivity(
+                        completed = comp,
+                        total = tot,
+                        percentage = if (tot > 0) comp.toFloat() / tot else 0f
+                    )
+                }
+
                 _statsData.value = StatsData(
                     labels = labels,
                     completedCounts = completed,
@@ -173,7 +204,8 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                     overallCompleted = allTasks.count { it.isCompleted },
                     overallTotal = allTasks.size,
                     streak = streak,
-                    dateRangeText = dateRangeText
+                    dateRangeText = dateRangeText,
+                    heatmapData = heatmapMap
                 )
             } catch (_: Exception) {
                 _statsData.value = StatsData()
@@ -184,17 +216,32 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
     }
 
     private fun calculateStreak(tasks: List<Task>, fromDate: LocalDate): Int {
+        if (tasks.isEmpty()) return 0
+        val minDate = tasks.minOf { it.date }
         var streak = 0
         var date = fromDate
-        while (true) {
+        while (date.toString() >= minDate) {
             val dayTasks = tasks.filter { it.date == date.toString() }
-            if (dayTasks.isEmpty()) break
-            if (dayTasks.isNotEmpty() && dayTasks.all { it.isCompleted }) {
+            if (dayTasks.isEmpty()) {
+                // Check if we are still within the same year/range or just stop if no data
+                // For streak, we usually stop if there's a gap in days with tasks.
+                // But if there are no tasks on a day, we might not want to break the streak?
+                // Standard: if no tasks scheduled, streak continues.
+                date = date.minus(1, DateTimeUnit.DAY)
+                continue 
+            }
+            val completed = dayTasks.count { it.isCompleted }
+            val completionRate = completed.toFloat() / dayTasks.size
+            
+            if (completionRate >= 0.8f) { // 80% threshold
                 streak++
                 date = date.minus(1, DateTimeUnit.DAY)
             } else {
                 break
             }
+            
+            // Limit to prevent infinite loop just in case
+            if (streak > 365) break
         }
         return streak
     }

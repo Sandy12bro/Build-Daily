@@ -109,7 +109,7 @@ class AddTaskViewModel(
                         colorHex = colorHex.value
                     )
                     repository.updateTask(updatedTask)
-                    ActionMessageManager.emit("Task updated ✨", ActionType.UPDATED)
+                    ActionMessageManager.postMessage("Task updated ✨", ActionType.UPDATED)
                 } else {
                     val task = Task(
                         deviceId = deviceId,
@@ -121,7 +121,7 @@ class AddTaskViewModel(
                         colorHex = colorHex.value
                     )
                     repository.insertTask(task)
-                    ActionMessageManager.emit("Task added successfully! 💪", ActionType.ADDED)
+                    ActionMessageManager.postMessage("Task added successfully! 💪", ActionType.ADDED)
                 }
                 _saveSuccess.value = true
             } catch (e: Exception) {
