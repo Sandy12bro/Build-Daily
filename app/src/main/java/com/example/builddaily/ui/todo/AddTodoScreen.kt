@@ -1,12 +1,16 @@
 package com.example.builddaily.ui.todo
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +27,10 @@ import com.example.builddaily.data.repository.TodoListRepository
 import com.example.builddaily.ui.theme.*
 import com.example.builddaily.util.ActionMessageManager
 import com.example.builddaily.util.ActionType
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,8 +42,33 @@ fun AddTodoScreen(onBack: () -> Unit) {
     var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("General") }
     var priority by remember { mutableStateOf(TodoPriority.MEDIUM) }
+    var deadline by remember { mutableStateOf<Long?>(null) }
 
     val categories = listOf("General", "Personal", "Work", "Health", "Study", "Finance")
+
+    val deadlineText = remember(deadline) {
+        deadline?.let {
+            val dt = LocalDateTime.ofEpochSecond(it / 1000, 0, ZoneOffset.UTC)
+            dt.format(DateTimeFormatter.ofPattern("MMM dd, hh:mm a"))
+        } ?: "No deadline set"
+    }
+
+    fun showDateTimePicker() {
+        val currentDateTime = Calendar.getInstance()
+        val startYear = currentDateTime.get(Calendar.YEAR)
+        val startMonth = currentDateTime.get(Calendar.MONTH)
+        val startDay = currentDateTime.get(Calendar.DAY_OF_MONTH)
+        val startHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
+        val startMinute = currentDateTime.get(Calendar.MINUTE)
+
+        DatePickerDialog(context, { _, year, month, day ->
+            TimePickerDialog(context, { _, hour, minute ->
+                val pickedDateTime = Calendar.getInstance()
+                pickedDateTime.set(year, month, day, hour, minute)
+                deadline = pickedDateTime.timeInMillis
+            }, startHour, startMinute, false).show()
+        }, startYear, startMonth, startDay).show()
+    }
 
     Scaffold(
         containerColor = SpaceBlack,
@@ -77,6 +110,38 @@ fun AddTodoScreen(onBack: () -> Unit) {
                         unfocusedTextColor = Color.White
                     )
                 )
+            }
+
+            // Deadline Picker
+            Column {
+                Text("Deadline (Optional)", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    onClick = { showDateTimePicker() },
+                    color = Color.White.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.CalendarMonth, null, tint = ElectricBlue, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = deadlineText,
+                            color = if (deadline != null) Color.White else Color.White.copy(alpha = 0.3f),
+                            fontSize = 15.sp,
+                            fontWeight = if (deadline != null) FontWeight.Bold else FontWeight.Normal
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (deadline != null) {
+                            TextButton(onClick = { deadline = null }) {
+                                Text("Clear", color = FlareRed, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
             }
 
             // Category Selection
@@ -142,7 +207,7 @@ fun AddTodoScreen(onBack: () -> Unit) {
             // Save Button
             Button(
                 onClick = {
-                    viewModel.addTodo(title, category, priority)
+                    viewModel.addTodo(title, category, priority, deadline)
                     ActionMessageManager.postMessage("Task successfully launched! 🚀", ActionType.ADDED)
                     onBack()
                 },
@@ -158,5 +223,3 @@ fun AddTodoScreen(onBack: () -> Unit) {
         }
     }
 }
-
-

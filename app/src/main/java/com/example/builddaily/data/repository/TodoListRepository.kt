@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class TodoListRepository(context: Context) {
+class TodoListRepository(private val context: Context) {
     private val prefs = context.getSharedPreferences("todo_list_prefs", Context.MODE_PRIVATE)
     private val _todos = MutableStateFlow<List<TodoItem>>(loadTodos())
     val todos: StateFlow<List<TodoItem>> = _todos.asStateFlow()
@@ -30,10 +30,19 @@ class TodoListRepository(context: Context) {
         } else {
             current.add(0, todo)
         }
+        
+        // Notification management
+        if (todo.isCompleted) {
+            com.example.builddaily.util.TodoScheduler.cancelTodoReminder(context, todo.id)
+        } else {
+            com.example.builddaily.util.TodoScheduler.scheduleTodoReminder(context, todo)
+        }
+        
         updateTodos(current)
     }
 
     fun deleteTodo(id: String) {
+        com.example.builddaily.util.TodoScheduler.cancelTodoReminder(context, id)
         val current = _todos.value.filter { it.id != id }
         updateTodos(current)
     }

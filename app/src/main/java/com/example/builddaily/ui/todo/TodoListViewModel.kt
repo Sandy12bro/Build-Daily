@@ -12,13 +12,14 @@ import java.util.UUID
 class TodoListViewModel(private val repository: TodoListRepository) : ViewModel() {
     val todos: StateFlow<List<TodoItem>> = repository.todos
 
-    fun addTodo(title: String, category: String, priority: TodoPriority) {
+    fun addTodo(title: String, category: String, priority: TodoPriority, deadline: Long? = null) {
         if (title.isBlank()) return
         val newItem = TodoItem(
             id = UUID.randomUUID().toString(),
             title = title,
             category = category,
-            priority = priority
+            priority = priority,
+            deadline = deadline
         )
         viewModelScope.launch {
             repository.saveTodo(newItem)

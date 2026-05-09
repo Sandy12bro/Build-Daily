@@ -152,15 +152,16 @@ fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit
                         style = MaterialTheme.typography.labelSmall,
                         color = categoryColor,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
+                        letterSpacing = 2.sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = todo.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
                         color = Color.White,
-                        textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else null
+                        textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else null,
+                        lineHeight = 28.sp
                     )
                 }
                 
@@ -190,15 +191,40 @@ fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Schedule, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(12.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = dateText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.3f),
-                        fontWeight = FontWeight.Medium
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Created Date
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Schedule, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = dateText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.3f),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    // Deadline (if exists)
+                    todo.deadline?.let { dl ->
+                        val dlText = remember(dl) {
+                            val formatter = DateTimeFormatter.ofPattern("MMM dd, hh:mm a")
+                                .withZone(ZoneId.systemDefault())
+                            formatter.format(Instant.ofEpochMilli(dl))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Event, null, tint = SolarYellow, modifier = Modifier.size(12.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = dlText,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = SolarYellow,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
 
                 IconButton(
@@ -279,22 +305,22 @@ fun PremiumMissionHUD(todos: List<TodoItem>) {
             ) {
                 Column {
                     Text(
-                        "SYSTEM STATUS",
+                        "MISSION CONTROL",
                         style = MaterialTheme.typography.labelSmall,
                         color = ElectricBlue,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 2.sp
                     )
                     Text(
-                        "Workspace Fill",
-                        style = MaterialTheme.typography.headlineSmall,
+                        "Daily Objectives",
+                        style = MaterialTheme.typography.headlineMedium,
                         color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Black
                     )
                 }
                 Text(
                     "${(progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.displayMedium,
                     color = Color.White,
                     fontWeight = FontWeight.Black
                 )
@@ -306,23 +332,28 @@ fun PremiumMissionHUD(todos: List<TodoItem>) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(if (progress >= 1f) MintGreen else ElectricBlue))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "$completed / $total TASKS COMPLETED",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 1.sp
+                        )
+                    }
                     Text(
-                        "$completed / $total Missions",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.4f),
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        if (progress >= 1f) "OPTIMIZED" else "STABILIZING",
+                        if (progress >= 1f) "ALL MISSIONS CLEAR" else "ACTIVE OPERATIONS",
                         style = MaterialTheme.typography.labelSmall,
                         color = if (progress >= 1f) MintGreen else ElectricBlue,
                         fontWeight = FontWeight.Black
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 LinearProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                    modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape),
                     color = ElectricBlue,
                     trackColor = Color.White.copy(alpha = 0.05f)
                 )
