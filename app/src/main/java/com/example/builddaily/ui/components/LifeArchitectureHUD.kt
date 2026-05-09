@@ -148,20 +148,33 @@ fun LifeArchitectureHUD(stats: UserStats) {
 }
 
 fun DrawScope.drawGodRays(x: Float, y: Float, alpha: Float) {
-    repeat(3) { i ->
-        val angle = -45f + (i * 30f)
-        val rad = Math.toRadians(angle.toDouble())
+    val random = java.util.Random(42)
+    val rayCount = 8
+    val lightSourceX = size.width * 0.2f // Top-left origin for cinematic feel
+    
+    repeat(rayCount) { i ->
+        val rayAlpha = (alpha * (0.1f + random.nextFloat() * 0.15f)).coerceIn(0f, 0.25f)
+        val startX = lightSourceX + (i * (size.width / rayCount))
+        val rayWidth = 40f + random.nextFloat() * 100f
+        
         val rayPath = Path().apply {
-            moveTo(x + (i - 1) * 100f, 0f)
-            lineTo(x + (i - 1) * 100f + 200f, size.height)
-            lineTo(x + (i - 1) * 100f + 300f, size.height)
-            lineTo(x + (i - 1) * 100f + 100f, 0f)
+            moveTo(startX, -50f)
+            lineTo(startX + size.width * 0.3f, size.height + 50f)
+            lineTo(startX + size.width * 0.3f + rayWidth, size.height + 50f)
+            lineTo(startX + rayWidth, -50f)
             close()
         }
+        
         drawPath(
             path = rayPath,
-            brush = Brush.verticalGradient(
-                listOf(Color.White.copy(alpha = alpha), Color.Transparent)
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    Color(0xFFFFFDE7).copy(alpha = rayAlpha), // Very soft golden tint
+                    Color(0xFFE1F5FE).copy(alpha = rayAlpha * 0.5f), // Fading to ethereal blue
+                    Color.Transparent
+                ),
+                start = Offset(startX, 0f),
+                end = Offset(startX + size.width * 0.2f, size.height)
             )
         )
     }
