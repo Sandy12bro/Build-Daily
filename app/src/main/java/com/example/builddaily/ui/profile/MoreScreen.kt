@@ -133,9 +133,10 @@ fun MoreScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showShareDialog = false
+                    val shareUrl = "https://github.com/Sandy12bro/Build-Daily/raw/main/BuildDaily.apk"
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, "Build Daily - Track your progress and crush your goals! Download here: https://builddaily.app")
+                        putExtra(Intent.EXTRA_TEXT, "Build Daily - Elevate your productivity and watch your personal life tree grow! \uD83C\uDF0C\uD83C\uDF33\n\nDownload the latest version here: $shareUrl")
                         type = "text/plain"
                     }
                     context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
