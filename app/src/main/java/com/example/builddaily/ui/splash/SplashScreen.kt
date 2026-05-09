@@ -107,9 +107,9 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
             
             Text(
                 text = """
-                    Either push your limits 
-                                    or 
-                    suffocate in your comfort zone
+                    Either push your limits 🌱 
+                            or 
+                    suffocate in your comfort zone ☠️🪦
                 """.trimIndent(),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
