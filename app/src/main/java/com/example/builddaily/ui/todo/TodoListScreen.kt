@@ -114,10 +114,10 @@ fun TodoListScreen(onBack: () -> Unit, onNavigateToAddTodo: () -> Unit) {
 fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit) {
     val categoryColor = getCategoryColor(todo.category)
     val scale by animateFloatAsState(if (todo.isCompleted) 0.98f else 1f)
-    val alpha by animateFloatAsState(if (todo.isCompleted) 0.7f else 1f)
+    val alpha by animateFloatAsState(if (todo.isCompleted) 0.6f else 1f)
     
     val dateText = remember(todo.createdAt) {
-        val formatter = DateTimeFormatter.ofPattern("MMM dd, hh:mm a")
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a")
             .withZone(ZoneId.systemDefault())
         formatter.format(Instant.ofEpochMilli(todo.createdAt))
     }
@@ -127,140 +127,212 @@ fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit
             .fillMaxWidth()
             .scale(scale)
             .alpha(alpha)
-            .clip(RoundedCornerShape(28.dp))
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.08f),
-                        Color.White.copy(alpha = 0.02f)
-                    )
-                )
-            )
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.05f))
             .border(
-                BorderStroke(
-                    1.dp,
-                    Brush.linearGradient(
-                        colors = listOf(
-                            categoryColor.copy(alpha = 0.4f),
-                            Color.Transparent,
-                            categoryColor.copy(alpha = 0.1f)
-                        )
-                    )
+                1.dp,
+                Brush.linearGradient(
+                    colors = listOf(categoryColor.copy(alpha = 0.4f), Color.Transparent)
                 ),
-                RoundedCornerShape(28.dp)
+                RoundedCornerShape(24.dp)
             )
             .clickable { onToggle() }
     ) {
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(18.dp)
         ) {
-            // Premium Checkbox
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(if (todo.isCompleted) categoryColor else Color.White.copy(alpha = 0.05f))
-                    .border(2.dp, if (todo.isCompleted) Color.Transparent else categoryColor.copy(alpha = 0.5f), CircleShape)
-                    .then(if (todo.isCompleted) Modifier.border(4.dp, Color.Black.copy(alpha = 0.1f), CircleShape) else Modifier),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                if (todo.isCompleted) {
-                    Icon(Icons.Default.Check, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = todo.category.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = categoryColor,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = todo.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else null
+                    )
                 }
-            }
-
-            Spacer(modifier = Modifier.width(20.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = todo.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = if (todo.isCompleted) Color.White.copy(alpha = 0.4f) else Color.White,
-                    textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else null,
-                    lineHeight = 22.sp
-                )
                 
-                Spacer(modifier = Modifier.height(10.dp))
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                // Action Button (Check)
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(if (todo.isCompleted) categoryColor else Color.White.copy(alpha = 0.05f))
+                        .clickable { onToggle() }
+                        .border(1.dp, if (todo.isCompleted) Color.Transparent else categoryColor.copy(alpha = 0.3f), CircleShape),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Category Badge
-                    Surface(
-                        color = categoryColor.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(categoryColor))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = todo.category.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = categoryColor,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp
-                            )
-                        }
-                    }
-
-                    // Date Label
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Schedule,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.3f),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = dateText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.3f),
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    Icon(
+                        if (todo.isCompleted) Icons.Default.Check else Icons.Default.NorthEast,
+                        contentDescription = null,
+                        tint = if (todo.isCompleted) Color.Black else categoryColor,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
 
-            // Delete Action
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(Color.White.copy(alpha = 0.03f), CircleShape)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Delete",
-                    tint = FlareRed.copy(alpha = 0.6f),
-                    modifier = Modifier.size(18.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Schedule, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(12.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = dateText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.3f),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(Icons.Default.DeleteOutline, null, tint = FlareRed.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PremiumMissionHUD(todos: List<TodoItem>) {
+    val completed = todos.count { it.isCompleted }
+    val total = todos.size
+    val progress by animateFloatAsState(
+        targetValue = if (total > 0) completed.toFloat() / total else 0f,
+        animationSpec = tween(1500, easing = FastOutSlowInEasing)
+    )
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val waveOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2 * Math.PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .clip(RoundedCornerShape(32.dp))
+            .background(Color.White.copy(alpha = 0.03f))
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(32.dp))
+    ) {
+        // Water/Wave Animation
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+            val fillHeight = height * (1f - progress)
+            
+            val path = Path()
+            path.moveTo(0f, fillHeight)
+            
+            val waveAmplitude = 15f
+            val waveLength = width / 1.5f
+            
+            for (x in 0..width.toInt()) {
+                val y = fillHeight + (Math.sin((x / waveLength * 2 * Math.PI) + waveOffset.toDouble()).toFloat() * waveAmplitude)
+                path.lineTo(x.toFloat(), y)
+            }
+            
+            path.lineTo(width, height)
+            path.lineTo(0f, height)
+            path.close()
+            
+            drawPath(
+                path = path,
+                brush = Brush.verticalGradient(
+                    colors = listOf(ElectricBlue.copy(alpha = 0.4f), ElectricBlue.copy(alpha = 0.1f))
+                )
+            )
+        }
+
+        Column(
+            modifier = Modifier.padding(24.dp).fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column {
+                    Text(
+                        "SYSTEM STATUS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = ElectricBlue,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 2.sp
+                    )
+                    Text(
+                        "Workspace Fill",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    "${(progress * 100).toInt()}%",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "$completed / $total Missions",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.4f),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        if (progress >= 1f) "OPTIMIZED" else "STABILIZING",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (progress >= 1f) MintGreen else ElectricBlue,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                    color = ElectricBlue,
+                    trackColor = Color.White.copy(alpha = 0.05f)
                 )
             }
         }
     }
 }
 
-
 @Composable
 fun NebulaBackground() {
-    val infiniteTransition = rememberInfiniteTransition()
-    val xOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(40000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
     Canvas(modifier = Modifier.fillMaxSize().alpha(0.4f)) {
         drawCircle(
             brush = Brush.radialGradient(
@@ -276,99 +348,6 @@ fun NebulaBackground() {
                 radius = 1000f
             )
         )
-    }
-}
-
-@Composable
-fun PremiumMissionHUD(todos: List<TodoItem>) {
-    val completed = todos.count { it.isCompleted }
-    val total = todos.size
-    val progress by animateFloatAsState(
-        targetValue = if (total > 0) completed.toFloat() / total else 0f,
-        animationSpec = tween(1000, easing = FastOutSlowInEasing)
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(160.dp)
-            .clip(RoundedCornerShape(32.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(
-                1.dp,
-                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.1f), Color.Transparent)),
-                RoundedCornerShape(32.dp)
-            )
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val path = Path()
-            val yPos = size.height * (1f - progress)
-            path.moveTo(0f, yPos)
-            path.cubicTo(
-                size.width * 0.25f, yPos - 20f,
-                size.width * 0.75f, yPos + 20f,
-                size.width, yPos
-            )
-            path.lineTo(size.width, size.height)
-            path.lineTo(0f, size.height)
-            path.close()
-            
-            drawPath(
-                path = path,
-                brush = Brush.verticalGradient(
-                    colors = listOf(MintGreen.copy(alpha = 0.2f), Color.Transparent)
-                )
-            )
-        }
-
-        Column(
-            modifier = Modifier.padding(24.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "STATUS HUD",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ElectricBlue,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp
-                    )
-                    Text(
-                        text = if (total == 0) "Awaiting Tasks" else "Progress Level",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Text(
-                    text = "${(progress * 100).toInt()}%",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White
-                )
-            }
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape),
-                    color = MintGreen,
-                    trackColor = Color.White.copy(alpha = 0.1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "$completed / $total",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.6f),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
     }
 }
 
@@ -399,6 +378,5 @@ fun EmptyMissionsState() {
         )
     }
 }
-
 
 

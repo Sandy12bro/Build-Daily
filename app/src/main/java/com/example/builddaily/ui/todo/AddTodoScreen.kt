@@ -159,13 +159,4 @@ fun AddTodoScreen(onBack: () -> Unit) {
     }
 }
 
-fun getCategoryColor(category: String): Color {
-    return when (category) {
-        "Work" -> CyberPurple
-        "Personal" -> ElectricBlue
-        "Health" -> MintGreen
-        "Study" -> SolarYellow
-        "Finance" -> OceanTeal
-        else -> MutedSlate
-    }
-}
+
