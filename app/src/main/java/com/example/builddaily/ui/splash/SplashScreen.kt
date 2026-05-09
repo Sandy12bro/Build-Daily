@@ -44,19 +44,25 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
 
     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-    ) { }
+    ) { 
+        // Navigate after permission interaction
+        onAnimationFinished()
+    }
 
     val context = LocalContext.current
     LaunchedEffect(key1 = true) {
         startAnimation = true
-        delay(3000)
+        delay(4000) // Increased to 4s for premium feel
         
-        // Request Notification permission
+        var needsNotificationPermission = false
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (!hasPermission) needsNotificationPermission = true
         }
-        
-        // Check for Exact Alarm permission
+
+        // Check for Exact Alarm permission (this is a separate settings screen)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -68,7 +74,11 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
             }
         }
         
-        onAnimationFinished()
+        if (needsNotificationPermission) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            onAnimationFinished()
+        }
     }
 
     Box(
