@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -55,17 +56,18 @@ fun BottomNavBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 20.dp),
+            .navigationBarsPadding() // Ensures it doesn't overlap with system buttons
+            .padding(horizontal = 16.dp, bottom = 16.dp, top = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         // Main Container
         Row(
             modifier = Modifier
-                .widthIn(max = 600.dp)
+                .widthIn(max = 500.dp)
                 .fillMaxWidth()
                 .height(64.dp)
                 .background(Color(0xFF121212), RoundedCornerShape(32.dp))
-                .padding(4.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
