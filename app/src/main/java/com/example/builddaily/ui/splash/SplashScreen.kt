@@ -1,5 +1,8 @@
 package com.example.builddaily.ui.splash
 
+import android.Manifest
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -14,6 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,12 +46,28 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
     ) { }
 
+    val context = LocalContext.current
     LaunchedEffect(key1 = true) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-        }
         startAnimation = true
-        delay(2000)
+        delay(3000)
+        
+        // Request Notification permission
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        
+        // Check for Exact Alarm permission
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    data = android.net.Uri.parse("package:${context.packageName}")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+            }
+        }
+        
         onAnimationFinished()
     }
 
@@ -86,7 +106,7 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
             )
             
             Text(
-                text = "Together RAWRR 🫂🩷",
+                text = "Either push your limits or suffocate in your comfort zone",
                 style = MaterialTheme.typography.labelMedium,
                 color = Color.White.copy(alpha = 0.5f),
                 letterSpacing = 2.sp
