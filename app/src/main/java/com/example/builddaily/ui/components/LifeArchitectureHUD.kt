@@ -149,19 +149,22 @@ fun LifeArchitectureHUD(stats: UserStats) {
 
 fun DrawScope.drawGodRays(x: Float, y: Float, alpha: Float) {
     val random = java.util.Random(42)
-    val rayCount = 8
-    val lightSourceX = size.width * 0.2f // Top-left origin for cinematic feel
+    val rayCount = 12
+    
+    // Start from well outside the screen to ensure full coverage even with tilt
+    val totalWidth = size.width * 2.5f
+    val startOffset = -size.width * 0.8f
     
     repeat(rayCount) { i ->
-        val rayAlpha = (alpha * (0.1f + random.nextFloat() * 0.15f)).coerceIn(0f, 0.25f)
-        val startX = lightSourceX + (i * (size.width / rayCount))
-        val rayWidth = 40f + random.nextFloat() * 100f
+        val rayAlpha = (alpha * (0.08f + random.nextFloat() * 0.12f)).coerceIn(0f, 0.2f)
+        val startX = startOffset + (i * (totalWidth / rayCount))
+        val rayWidth = 60f + random.nextFloat() * 150f
         
         val rayPath = Path().apply {
-            moveTo(startX, -50f)
-            lineTo(startX + size.width * 0.3f, size.height + 50f)
-            lineTo(startX + size.width * 0.3f + rayWidth, size.height + 50f)
-            lineTo(startX + rayWidth, -50f)
+            moveTo(startX, -100f)
+            lineTo(startX + size.width * 0.5f, size.height + 100f)
+            lineTo(startX + size.width * 0.5f + rayWidth, size.height + 100f)
+            lineTo(startX + rayWidth, -100f)
             close()
         }
         
@@ -169,12 +172,12 @@ fun DrawScope.drawGodRays(x: Float, y: Float, alpha: Float) {
             path = rayPath,
             brush = Brush.linearGradient(
                 colors = listOf(
-                    Color(0xFFFFFDE7).copy(alpha = rayAlpha), // Very soft golden tint
-                    Color(0xFFE1F5FE).copy(alpha = rayAlpha * 0.5f), // Fading to ethereal blue
+                    Color(0xFFFFFDE7).copy(alpha = rayAlpha), 
+                    Color(0xFFE1F5FE).copy(alpha = rayAlpha * 0.4f),
                     Color.Transparent
                 ),
                 start = Offset(startX, 0f),
-                end = Offset(startX + size.width * 0.2f, size.height)
+                end = Offset(startX + size.width * 0.4f, size.height)
             )
         )
     }
