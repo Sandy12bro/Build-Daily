@@ -106,14 +106,27 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
             )
             
             Text(
-                text = """
-                    Either push your limits 🌱 
-                            or 
-                    suffocate in your comfort zone ☠️🪦
-                """.trimIndent(),
+                text = "Either push your limits 🌱",
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                color = Color.White.copy(alpha = 0.5f),
+                color = Color.White.copy(alpha = 0.6f),
+                letterSpacing = 2.sp
+            )
+            
+            Text(
+                text = "or",
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                color = Color.White.copy(alpha = 0.3f),
+                modifier = Modifier.padding(vertical = 4.dp),
+                letterSpacing = 1.sp
+            )
+            
+            Text(
+                text = "suffocate in your comfort zone ☠️🪦",
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                color = Color.White.copy(alpha = 0.6f),
                 letterSpacing = 2.sp
             )
         }
