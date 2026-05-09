@@ -77,34 +77,38 @@ fun LifeArchitectureHUD(stats: UserStats) {
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(480.dp),
+                .weight(1f, fill = false)
+                .heightIn(min = 320.dp, max = 500.dp),
             contentAlignment = Alignment.Center
         ) {
+            val availableWidth = constraints.maxWidth.toFloat()
+            val availableHeight = constraints.maxHeight.toFloat()
+            
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val canvasW = size.width
                 val canvasH = size.height
                 val centerX = canvasW / 2f
                 val bottomY = canvasH * 0.95f
 
-                // 1. GOD RAYS (Cinematic Lighting)
+                // 1. GOD RAYS
                 if (godRaysAnim.value > 0.1f) {
                     drawGodRays(centerX, canvasH * 0.3f, godRaysAnim.value * rayPulse)
                 }
 
-                // 2. ROOT MIST & SHADOW
+                // 2. ROOT MIST
                 drawMajesticMist(centerX, bottomY, mistAnim.value)
 
                 // 3. THE ANCIENT TREE
                 withTransform({
                     rotate(slowSway, pivot = Offset(centerX, bottomY))
                 }) {
-                    // Tapered, Massive Trunk
+                    // Responsive Tapered Trunk
                     val tVal = trunkAnim.value.coerceIn(0.001f, 1f)
-                    val tHeight = canvasH * 0.55f * tVal
-                    val tWidth = 32f * growthValue.coerceAtLeast(0.2f)
+                    val tHeight = canvasH * 0.6f * tVal
+                    val tWidth = (canvasW * 0.08f) * growthValue.coerceAtLeast(0.2f)
                     
                     drawAncientTrunk(centerX, bottomY, tHeight, tWidth)
 
@@ -120,7 +124,7 @@ fun LifeArchitectureHUD(stats: UserStats) {
                     }
                 }
 
-                // 4. FLOATING SPORES / PARTICLES
+                // 4. PARTICLES
                 drawAtmosphericParticles(centerX, canvasH * 0.4f, canopyAnim.value)
             }
         }

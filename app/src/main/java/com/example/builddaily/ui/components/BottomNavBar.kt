@@ -60,10 +60,12 @@ fun BottomNavBar(
         // Main Container
         Row(
             modifier = Modifier
+                .widthIn(max = 600.dp)
+                .fillMaxWidth()
                 .height(64.dp)
                 .background(Color(0xFF121212), RoundedCornerShape(32.dp))
                 .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             BottomNavItem.entries.forEach { item ->
