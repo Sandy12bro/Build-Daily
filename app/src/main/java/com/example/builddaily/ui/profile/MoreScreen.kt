@@ -117,54 +117,17 @@ fun MoreScreen(
             MoreOption(
                 Icons.Default.Share, 
                 "Share App", 
-                "Share Build Daily via Link or APK"
+                "Share the official download link"
             ) {
-                showShareDialog = true
+                val shareUrl = "https://github.com/Sandy12bro/Build-Daily/raw/main/BuildDaily.apk"
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, "Build Daily - Elevate your productivity and watch your personal life tree grow! \uD83C\uDF0C\uD83C\uDF33\n\nDownload the latest version here: $shareUrl")
+                    type = "text/plain"
+                }
+                context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
             }
         }
-    }
-
-    if (showShareDialog) {
-        AlertDialog(
-            onDismissRequest = { showShareDialog = false },
-            title = { Text("Share Build Daily", color = Color.White) },
-            text = { Text("How would you like to share the app?", color = Color.White.copy(alpha = 0.7f)) },
-            containerColor = Color(0xFF1E1E1E),
-            confirmButton = {
-                TextButton(onClick = {
-                    showShareDialog = false
-                    val shareUrl = "https://github.com/Sandy12bro/Build-Daily/raw/main/BuildDaily.apk"
-                    val sendIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, "Build Daily - Elevate your productivity and watch your personal life tree grow! \uD83C\uDF0C\uD83C\uDF33\n\nDownload the latest version here: $shareUrl")
-                        type = "text/plain"
-                    }
-                    context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
-                }) {
-                    Text("Share Link", color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showShareDialog = false
-                    try {
-                        val apkFile = File(context.applicationInfo.sourceDir)
-                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
-                        val sendIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            type = "application/vnd.android.package-archive"
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        context.startActivity(Intent.createChooser(sendIntent, "Share APK"))
-                    } catch (e: Exception) {
-                        // Handle error
-                    }
-                }) {
-                    Text("Share APK", color = MaterialTheme.colorScheme.primary)
-                }
-            }
-        )
     }
 }
 
