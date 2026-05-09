@@ -45,10 +45,13 @@ class NotificationHelper(private val context: Context) {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.app_logo_final) // Use our new logo!
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Standard system icon for maximum reliability
             .setContentTitle(title)
             .setContentText(description ?: "It's time to start your task!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM) // Categorize as alarm for better delivery
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()

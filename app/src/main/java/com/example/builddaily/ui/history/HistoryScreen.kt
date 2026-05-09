@@ -130,7 +130,10 @@ fun HistoryScreen(
                                     com.example.builddaily.util.ActionType.INCOMPLETE
                                 )
                             },
-                            onRepeat = { viewModel.repeatTask(task) }
+                            onRepeat = { 
+                                viewModel.repeatTask(task) 
+                                com.example.builddaily.util.ActionMessageManager.postMessage("Task repeated for tomorrow! 🚀", com.example.builddaily.util.ActionType.REPEATED)
+                            }
                         )
                     }
                 }

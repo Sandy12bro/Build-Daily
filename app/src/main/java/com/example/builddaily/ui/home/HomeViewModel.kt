@@ -11,10 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val repository: TaskRepository) : ViewModel() {
+class HomeViewModel(
+    private val repository: TaskRepository,
+    private val statsRepository: com.example.builddaily.data.repository.UserStatsRepository
+) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks
+
+    val userStats = statsRepository.stats
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -47,6 +52,9 @@ class HomeViewModel(private val repository: TaskRepository) : ViewModel() {
                 repository.updateTaskCompletion(task.id, newStatus)
                 _tasks.value = _tasks.value.map {
                     if (it.id == task.id) it.copy(isCompleted = newStatus) else it
+                }
+                if (newStatus) {
+                    statsRepository.addPoints(10)
                 }
                 ActionMessageManager.postMessage(
                     if (newStatus) "Task completed! 🤩" else "Task set to incomplete",

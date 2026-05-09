@@ -56,7 +56,8 @@ import androidx.compose.material.icons.filled.Timer
 fun MoreScreen(
     onNavigateToNotifications: () -> Unit,
     onNavigateToPomodoro: () -> Unit,
-    onNavigateToTodoList: () -> Unit
+    onNavigateToTodoList: () -> Unit,
+    onNavigateToEvolution: () -> Unit
 ) {
     val context = LocalContext.current
     var showShareDialog by remember { mutableStateOf(false) }
@@ -78,6 +79,14 @@ fun MoreScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            MoreOption(
+                Icons.Default.Star, // Using Star for special evolution
+                "Grow Your Life", 
+                "Watch your personal plant evolve"
+            ) {
+                onNavigateToEvolution()
+            }
+
             MoreOption(
                 Icons.Default.Assignment, 
                 "TO-DO lists", 

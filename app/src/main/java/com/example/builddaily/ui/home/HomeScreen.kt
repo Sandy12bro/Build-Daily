@@ -62,11 +62,13 @@ import com.example.builddaily.util.today
 @Composable
 fun HomeScreen(
     repository: TaskRepository,
+    statsRepository: com.example.builddaily.data.repository.UserStatsRepository,
     onAddTask: () -> Unit,
     onEditTask: (String) -> Unit
 ) {
-    val viewModel = remember { HomeViewModel(repository) }
+    val viewModel = remember { HomeViewModel(repository, statsRepository) }
     val tasks by viewModel.tasks.collectAsState()
+    val userStats by viewModel.userStats.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
@@ -146,6 +148,7 @@ fun HomeScreen(
                 val completedCount = tasks.count { it.isCompleted }
                 val totalCount = tasks.size
                 val progress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
+
 
                 Column(
                     modifier = Modifier
@@ -250,10 +253,18 @@ fun HomeScreen(
                                         onToggleComplete = { _ -> 
                                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                             viewModel.toggleTaskCompletion(task) 
+                                            val status = if (!task.isCompleted) "completed! 🎉" else "moved to pending."
+                                            com.example.builddaily.util.ActionMessageManager.postMessage("Task $status", if (!task.isCompleted) com.example.builddaily.util.ActionType.COMPLETED else com.example.builddaily.util.ActionType.INCOMPLETE)
                                         },
-                                        onDelete = { viewModel.deleteTask(task) },
+                                        onDelete = { 
+                                            viewModel.deleteTask(task) 
+                                            com.example.builddaily.util.ActionMessageManager.postMessage("Task deleted.", com.example.builddaily.util.ActionType.DELETED)
+                                        },
                                         onEdit = { onEditTask(task.id) },
-                                        onRepeat = { viewModel.repeatTask(task) }
+                                        onRepeat = { 
+                                            viewModel.repeatTask(task) 
+                                            com.example.builddaily.util.ActionMessageManager.postMessage("Task repeated for tomorrow.", com.example.builddaily.util.ActionType.REPEATED)
+                                        }
                                     )
                                 }
                             }

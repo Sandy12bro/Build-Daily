@@ -11,6 +11,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 
 private val OnyxColorScheme = darkColorScheme(
     primary = BlueprintLavender,
@@ -51,4 +56,24 @@ fun BuildDailyTheme(
         typography = Typography,
         content = content
     )
+}
+
+@Composable
+fun NebulaBackground() {
+    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize().alpha(0.4f)) {
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(CyberPurple.copy(alpha = 0.15f), Color.Transparent),
+                center = Offset(size.width * 0.2f, size.height * 0.3f),
+                radius = 800f
+            )
+        )
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(ElectricBlue.copy(alpha = 0.15f), Color.Transparent),
+                center = Offset(size.width * 0.8f, size.height * 0.7f),
+                radius = 1000f
+            )
+        )
+    }
 }

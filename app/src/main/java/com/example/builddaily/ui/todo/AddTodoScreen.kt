@@ -34,10 +34,13 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTodoScreen(onBack: () -> Unit) {
+fun AddTodoScreen(
+    onBack: () -> Unit,
+    statsRepository: com.example.builddaily.data.repository.UserStatsRepository
+) {
     val context = LocalContext.current
     val repository = remember { TodoListRepository(context) }
-    val viewModel = remember { TodoListViewModel(repository) }
+    val viewModel = remember { TodoListViewModel(repository, statsRepository) }
     
     var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("General") }

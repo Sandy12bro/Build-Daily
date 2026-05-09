@@ -40,10 +40,14 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListScreen(onBack: () -> Unit, onNavigateToAddTodo: () -> Unit) {
+fun TodoListScreen(
+    onBack: () -> Unit, 
+    onNavigateToAddTodo: () -> Unit,
+    statsRepository: com.example.builddaily.data.repository.UserStatsRepository
+) {
     val context = LocalContext.current
     val repository = remember { TodoListRepository(context) }
-    val viewModel = remember { TodoListViewModel(repository) }
+    val viewModel = remember { TodoListViewModel(repository, statsRepository) }
     val todos by viewModel.todos.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize().background(SpaceBlack)) {
@@ -359,26 +363,6 @@ fun PremiumMissionHUD(todos: List<TodoItem>) {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun NebulaBackground() {
-    Canvas(modifier = Modifier.fillMaxSize().alpha(0.4f)) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(CyberPurple.copy(alpha = 0.15f), Color.Transparent),
-                center = Offset(size.width * 0.2f, size.height * 0.3f),
-                radius = 800f
-            )
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(ElectricBlue.copy(alpha = 0.15f), Color.Transparent),
-                center = Offset(size.width * 0.8f, size.height * 0.7f),
-                radius = 1000f
-            )
-        )
     }
 }
 

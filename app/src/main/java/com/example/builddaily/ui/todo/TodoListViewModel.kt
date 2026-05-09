@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class TodoListViewModel(private val repository: TodoListRepository) : ViewModel() {
+class TodoListViewModel(
+    private val repository: TodoListRepository,
+    private val statsRepository: com.example.builddaily.data.repository.UserStatsRepository
+) : ViewModel() {
     val todos: StateFlow<List<TodoItem>> = repository.todos
 
     fun addTodo(title: String, category: String, priority: TodoPriority, deadline: Long? = null) {
@@ -27,8 +30,12 @@ class TodoListViewModel(private val repository: TodoListRepository) : ViewModel(
     }
 
     fun toggleTodo(todo: TodoItem) {
+        val newStatus = !todo.isCompleted
         viewModelScope.launch {
-            repository.saveTodo(todo.copy(isCompleted = !todo.isCompleted))
+            repository.saveTodo(todo.copy(isCompleted = newStatus))
+            if (newStatus) {
+                statsRepository.addPoints(5) // Smaller bonus for quick todos
+            }
         }
     }
 

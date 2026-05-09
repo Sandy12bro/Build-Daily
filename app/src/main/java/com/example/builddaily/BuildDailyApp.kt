@@ -46,6 +46,7 @@ fun BuildDailyApp() {
     val deviceId = DeviceIdManager.getDeviceId(context)
     val repository = remember(deviceId) { TaskRepository(context, deviceId) }
     val pomodoroRepo = remember { PomodoroRepository(context) }
+    val statsRepository = remember { com.example.builddaily.data.repository.UserStatsRepository(context) }
     
     // Shared Pomodoro ViewModel to persist across navigation
     val pomodoroViewModel: PomodoroViewModel = remember { PomodoroViewModel(pomodoroRepo) }
@@ -114,6 +115,7 @@ fun BuildDailyApp() {
                 composable("home") {
                     HomeScreen(
                         repository = repository,
+                        statsRepository = statsRepository,
                         onAddTask = { navController.navigate("add_task") },
                         onEditTask = { taskId -> navController.navigate("edit_task/$taskId") }
                     )
@@ -147,10 +149,17 @@ fun BuildDailyApp() {
                     StatsScreen(repository = repository)
                 }
                 composable("more") {
-                    MoreScreen(
+                    com.example.builddaily.ui.profile.MoreScreen(
                         onNavigateToNotifications = { navController.navigate("notification_settings") },
                         onNavigateToPomodoro = { navController.navigate("pomodoro") },
-                        onNavigateToTodoList = { navController.navigate("to_do_list") }
+                        onNavigateToTodoList = { navController.navigate("to_do_list") },
+                        onNavigateToEvolution = { navController.navigate("evolution") }
+                    )
+                }
+                composable("evolution") {
+                    com.example.builddaily.ui.profile.LifeArchitectureScreen(
+                        statsRepository = statsRepository,
+                        onBack = { navController.popBackStack() }
                     )
                 }
                 composable("notification_settings") {
@@ -172,12 +181,14 @@ fun BuildDailyApp() {
                 composable("to_do_list") {
                     com.example.builddaily.ui.todo.TodoListScreen(
                         onBack = { navController.popBackStack() },
-                        onNavigateToAddTodo = { navController.navigate("add_todo") }
+                        onNavigateToAddTodo = { navController.navigate("add_todo") },
+                        statsRepository = statsRepository
                     )
                 }
                 composable("add_todo") {
                     com.example.builddaily.ui.todo.AddTodoScreen(
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        statsRepository = statsRepository
                     )
                 }
             }
