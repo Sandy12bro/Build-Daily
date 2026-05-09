@@ -9,6 +9,8 @@ class NotificationReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra("task_title") ?: "Task Reminder"
         val description = intent.getStringExtra("task_description")
         
+        android.util.Log.d("NotificationReceiver", "Alarm triggered for: $title")
+
         val notificationHelper = NotificationHelper(context)
         notificationHelper.showNotification(title, description)
         

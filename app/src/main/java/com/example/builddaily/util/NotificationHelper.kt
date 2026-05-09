@@ -54,6 +54,13 @@ class NotificationHelper(private val context: Context) {
             .build()
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        
+        android.util.Log.d("NotificationHelper", "Firing notification: $title")
+        
+        try {
+            notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        } catch (e: Exception) {
+            android.util.Log.e("NotificationHelper", "Failed to show notification", e)
+        }
     }
 }

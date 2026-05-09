@@ -13,7 +13,7 @@ object TodoScheduler {
         val deadline = todo.deadline ?: return
         val triggerTime = deadline - (60 * 60 * 1000) // 1 hour before
 
-        if (triggerTime <= System.currentTimeMillis()) return // Already past or too close
+        if (triggerTime <= System.currentTimeMillis()) return 
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         
@@ -30,27 +30,9 @@ object TodoScheduler {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            }
-        } catch (e: Exception) {
-            alarmManager.set(
-                AlarmManager.RTC_WAKEUP,
-                triggerTime,
-                pendingIntent
-            )
-        }
+        // Use setAlarmClock for maximum precision (bypasses Doze/Battery optimization)
+        val info = AlarmManager.AlarmClockInfo(triggerTime, pendingIntent)
+        alarmManager.setAlarmClock(info, pendingIntent)
     }
 
     fun cancelTodoReminder(context: Context, todoId: String) {

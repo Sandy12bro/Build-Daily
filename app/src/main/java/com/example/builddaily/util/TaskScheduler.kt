@@ -15,15 +15,6 @@ object TaskScheduler {
     fun scheduleTaskNotification(context: Context, task: Task) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // Check for exact alarm permission on Android 12+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                // If we can't schedule exact alarms, we might want to prompt the user,
-                // but for now we'll just try to schedule and catch the exception or use inexact.
-                // Or better, we can use setAndAllowWhileIdle if precision is slightly less critical.
-            }
-        }
-
         val taskDateTime = try {
             val localDate = LocalDate.parse(task.date)
             val localTime = LocalTime.parse(task.startTime)
@@ -32,66 +23,50 @@ object TaskScheduler {
             null
         } ?: return
 
-        val now = Clock.System.now()
-        if (taskDateTime <= now) return // Don't schedule for past tasks
+        val now = Clock.System.now().toEpochMilliseconds()
+        val startTime = taskDateTime.toEpochMilliseconds()
 
-        val intent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("task_title", task.title)
-            putExtra("task_description", task.description)
-            putExtra("task_id", task.id)
+        // 1. Start Time Notification
+        if (startTime > now) {
+            val intent = createIntent(context, task.title, task.description, task.id)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, task.id.hashCode(), intent, 
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(startTime, pendingIntent), pendingIntent)
         }
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            task.id.hashCode(),
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val triggerTime = taskDateTime.toEpochMilliseconds()
-        
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-                // Fallback to inexact alarm if exact is not allowed
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            }
-        } catch (e: SecurityException) {
-            // Last resort fallback
-            alarmManager.set(
-                AlarmManager.RTC_WAKEUP,
-                triggerTime,
-                pendingIntent
+        // 2. 10 Minutes Before Notification
+        val tenMinBefore = startTime - (10 * 60 * 1000)
+        if (tenMinBefore > now) {
+            val intent = createIntent(context, "Upcoming Task: ${task.title}", "Starting in 10 minutes", task.id)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, task.id.hashCode() + 100000, intent, 
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
+            alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(tenMinBefore, pendingIntent), pendingIntent)
+        }
+    }
+
+    private fun createIntent(context: Context, title: String, description: String?, id: String): Intent {
+        return Intent(context, NotificationReceiver::class.java).apply {
+            putExtra("task_title", title)
+            putExtra("task_description", description)
+            putExtra("task_id", id)
         }
     }
 
     fun cancelTaskNotification(context: Context, task: Task) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, NotificationReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            task.id.hashCode(),
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE
-        )
-        if (pendingIntent != null) {
-            alarmManager.cancel(pendingIntent)
+        
+        // Cancel start time
+        PendingIntent.getBroadcast(context, task.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE)?.let {
+            alarmManager.cancel(it)
+        }
+        // Cancel 10 min reminder
+        PendingIntent.getBroadcast(context, task.id.hashCode() + 100000, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE)?.let {
+            alarmManager.cancel(it)
         }
     }
 }
