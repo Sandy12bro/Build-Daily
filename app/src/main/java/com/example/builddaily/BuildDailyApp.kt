@@ -31,6 +31,10 @@ import com.example.builddaily.ui.profile.MoreScreen
 import com.example.builddaily.ui.profile.NotificationSettingsScreen
 import com.example.builddaily.ui.splash.SplashScreen
 import com.example.builddaily.ui.stats.StatsScreen
+import com.example.builddaily.ui.pomodoro.PomodoroScreen
+import com.example.builddaily.ui.pomodoro.PomodoroViewModel
+import com.example.builddaily.data.repository.PomodoroRepository
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun BuildDailyApp() {
@@ -41,6 +45,10 @@ fun BuildDailyApp() {
     val context = LocalContext.current
     val deviceId = DeviceIdManager.getDeviceId(context)
     val repository = remember(deviceId) { TaskRepository(context, deviceId) }
+    val pomodoroRepo = remember { PomodoroRepository(context) }
+    
+    // Shared Pomodoro ViewModel to persist across navigation
+    val pomodoroViewModel: PomodoroViewModel = remember { PomodoroViewModel(pomodoroRepo) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -140,11 +148,37 @@ fun BuildDailyApp() {
                 }
                 composable("more") {
                     MoreScreen(
-                        onNavigateToNotifications = { navController.navigate("notification_settings") }
+                        onNavigateToNotifications = { navController.navigate("notification_settings") },
+                        onNavigateToPomodoro = { navController.navigate("pomodoro") },
+                        onNavigateToTodoList = { navController.navigate("to_do_list") }
                     )
                 }
                 composable("notification_settings") {
                     NotificationSettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable("pomodoro") {
+                    PomodoroScreen(
+                        onBack = { navController.popBackStack() },
+                        onShowHistory = { navController.navigate("pomodoro_history") },
+                        viewModel = pomodoroViewModel
+                    )
+                }
+                composable("pomodoro_history") {
+                    com.example.builddaily.ui.pomodoro.PomodoroHistoryScreen(
+                        onBack = { navController.popBackStack() },
+                        viewModel = pomodoroViewModel
+                    )
+                }
+                composable("to_do_list") {
+                    com.example.builddaily.ui.todo.TodoListScreen(
+                        onBack = { navController.popBackStack() },
+                        onNavigateToAddTodo = { navController.navigate("add_todo") }
+                    )
+                }
+                composable("add_todo") {
+                    com.example.builddaily.ui.todo.AddTodoScreen(
+                        onBack = { navController.popBackStack() }
+                    )
                 }
             }
         }

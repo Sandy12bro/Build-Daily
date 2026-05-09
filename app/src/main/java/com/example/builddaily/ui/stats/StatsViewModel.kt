@@ -233,7 +233,7 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
             val completed = dayTasks.count { it.isCompleted }
             val completionRate = completed.toFloat() / dayTasks.size
             
-            if (completionRate >= 0.8f) { // 80% threshold
+            if (completionRate >= 0.75f) { // 75% threshold
                 streak++
                 date = date.minus(1, DateTimeUnit.DAY)
             } else {

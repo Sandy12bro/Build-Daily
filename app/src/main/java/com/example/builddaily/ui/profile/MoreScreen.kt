@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
@@ -48,9 +49,15 @@ import androidx.core.content.FileProvider
 import java.io.File
 import android.content.Intent
 
+import androidx.compose.material.icons.filled.Timer
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreScreen(onNavigateToNotifications: () -> Unit) {
+fun MoreScreen(
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToPomodoro: () -> Unit,
+    onNavigateToTodoList: () -> Unit
+) {
     val context = LocalContext.current
     var showShareDialog by remember { mutableStateOf(false) }
 
@@ -71,6 +78,22 @@ fun MoreScreen(onNavigateToNotifications: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            MoreOption(
+                Icons.Default.Assignment, 
+                "TO-DO lists", 
+                "Manage your long-term mission log"
+            ) {
+                onNavigateToTodoList()
+            }
+
+            MoreOption(
+                Icons.Default.Timer, 
+                "Pomodoro Timer", 
+                "Focus with the galactic timer"
+            ) {
+                onNavigateToPomodoro()
+            }
+
             MoreOption(
                 Icons.Default.Notifications, 
                 "Notifications", 

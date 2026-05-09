@@ -455,7 +455,7 @@ fun ActivityHeatmap(
                     var currentStreak = 0
                     var maxStreak = 0
                     displayData.forEach { date ->
-                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.8f) {
+                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.75f) {
                             currentStreak++; maxStreak = maxOf(maxStreak, currentStreak)
                         } else currentStreak = 0
                     }
@@ -492,9 +492,9 @@ fun ActivityHeatmap(
                             val isSelected = selectedDate == date
                             val color = when {
                                 completion >= 1f -> MintGreen
-                                completion >= 0.8f -> MintGreen.copy(alpha = 0.8f)
-                                completion >= 0.5f -> MintGreen.copy(alpha = 0.5f)
-                                completion >= 0.2f -> MintGreen.copy(alpha = 0.2f)
+                                completion >= 0.75f -> MintGreen.copy(alpha = 0.8f)
+                                completion >= 0.45f -> MintGreen.copy(alpha = 0.5f)
+                                completion >= 0.15f -> MintGreen.copy(alpha = 0.2f)
                                 else -> Color.White.copy(alpha = 0.1f)
                             }
                             val scale by animateFloatAsState(if (isSelected) 1.25f else 1f)
@@ -519,7 +519,7 @@ fun ActivityHeatmap(
                                     Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(text = "${date.dayOfMonth} ${date.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${date.year}", color = Color.White.copy(alpha = 0.6f))
                                         Text(text = "Tasks: ${activity.completed}/${activity.total} | Score: $score/10", fontWeight = FontWeight.Bold, color = Color.White)
-                                        Text(text = "${(activity.percentage * 100).toInt()}% Done", style = MaterialTheme.typography.labelSmall, color = if (activity.percentage >= 0.8f) MintGreen else SolarYellow)
+                                        Text(text = "${(activity.percentage * 100).toInt()}% Done", style = MaterialTheme.typography.labelSmall, color = if (activity.percentage >= 0.75f) MintGreen else SolarYellow)
                                     }
                                 }
                             }
@@ -537,7 +537,7 @@ fun ActivityHeatmap(
                     var maxStreak = 0
                     var currentStreak = 0
                     displayData.forEach { date ->
-                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.8f) {
+                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.75f) {
                             currentStreak++; maxStreak = maxOf(maxStreak, currentStreak)
                         } else currentStreak = 0
                     }
@@ -587,9 +587,9 @@ fun ActivityHeatmap(
                                     val isSelected = selectedDate == date
                                     val color = when {
                                         completion >= 1f -> MintGreen
-                                        completion >= 0.8f -> MintGreen.copy(alpha = 0.8f)
-                                        completion >= 0.5f -> MintGreen.copy(alpha = 0.5f)
-                                        completion >= 0.2f -> MintGreen.copy(alpha = 0.2f)
+                                        completion >= 0.75f -> MintGreen.copy(alpha = 0.8f)
+                                        completion >= 0.45f -> MintGreen.copy(alpha = 0.5f)
+                                        completion >= 0.15f -> MintGreen.copy(alpha = 0.2f)
                                         else -> Color.White.copy(alpha = 0.1f)
                                     }
                                     val scale by animateFloatAsState(if (isSelected) 1.25f else 1f)
@@ -617,7 +617,7 @@ fun ActivityHeatmap(
                                     Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(text = "${date.dayOfMonth} ${date.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${date.year}", color = Color.White.copy(alpha = 0.6f))
                                         Text(text = "Tasks: ${activity.completed}/${activity.total} | Score: $score/10", fontWeight = FontWeight.Bold, color = Color.White)
-                                        Text(text = "${(activity.percentage * 100).toInt()}% Done", style = MaterialTheme.typography.labelSmall, color = if (activity.percentage >= 0.8f) MintGreen else SolarYellow)
+                                        Text(text = "${(activity.percentage * 100).toInt()}% Done", style = MaterialTheme.typography.labelSmall, color = if (activity.percentage >= 0.75f) MintGreen else SolarYellow)
                                     }
                                 }
                             }
@@ -635,7 +635,7 @@ fun ActivityHeatmap(
                     var maxStreak = 0
                     var currentStreak = 0
                     displayData.forEach { date ->
-                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.8f) {
+                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.75f) {
                             currentStreak++; maxStreak = maxOf(maxStreak, currentStreak)
                         } else currentStreak = 0
                     }
@@ -700,9 +700,9 @@ fun ActivityHeatmap(
                                                             val isSelected = selectedDate == date
                                                             val color = when {
                                                                 activity.percentage >= 1f -> MintGreen
-                                                                activity.percentage >= 0.8f -> MintGreen.copy(alpha = 0.8f)
-                                                                activity.percentage >= 0.5f -> MintGreen.copy(alpha = 0.5f)
-                                                                activity.percentage >= 0.2f -> MintGreen.copy(alpha = 0.2f)
+                                                                activity.percentage >= 0.75f -> MintGreen.copy(alpha = 0.8f)
+                                                                activity.percentage >= 0.45f -> MintGreen.copy(alpha = 0.5f)
+                                                                activity.percentage >= 0.15f -> MintGreen.copy(alpha = 0.2f)
                                                                 else -> Color.White.copy(alpha = 0.08f)
                                                             }
                                                             val scale by animateFloatAsState(if (isSelected) 1.4f else 1f)
@@ -734,7 +734,7 @@ fun ActivityHeatmap(
                                     Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(text = "${date.dayOfMonth} ${date.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${date.year}", color = Color.White.copy(alpha = 0.6f))
                                         Text(text = "Tasks: ${activity.completed}/${activity.total} | Score: $score/10", fontWeight = FontWeight.Bold, color = Color.White)
-                                        Text(text = "${(activity.percentage * 100).toInt()}% Done", style = MaterialTheme.typography.labelSmall, color = if (activity.percentage >= 0.8f) MintGreen else SolarYellow)
+                                        Text(text = "${(activity.percentage * 100).toInt()}% Done", style = MaterialTheme.typography.labelSmall, color = if (activity.percentage >= 0.75f) MintGreen else SolarYellow)
                                     }
                                 }
                             }
@@ -748,7 +748,7 @@ fun ActivityHeatmap(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
             Text("Less", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.width(4.dp))
-            listOf(0.08f, 0.2f, 0.5f, 0.8f, 1f).forEach { alpha ->
+            listOf(0.08f, 0.2f, 0.5f, 0.75f, 1f).forEach { alpha ->
                 Box(modifier = Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(MintGreen.copy(alpha = alpha)))
                 Spacer(modifier = Modifier.width(2.dp))
             }
