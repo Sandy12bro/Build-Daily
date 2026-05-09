@@ -57,7 +57,7 @@ fun BottomNavBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding() // Ensures it doesn't overlap with system buttons
-            .padding(horizontal = 16.dp, bottom = 16.dp, top = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         // Main Container
