@@ -80,8 +80,7 @@ fun LifeArchitectureHUD(stats: UserStats) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false)
-                .heightIn(min = 320.dp, max = 500.dp),
+                .height(480.dp),
             contentAlignment = Alignment.Center
         ) {
             val availableWidth = constraints.maxWidth.toFloat()
