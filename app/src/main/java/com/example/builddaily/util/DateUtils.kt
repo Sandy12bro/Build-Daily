@@ -4,7 +4,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.toJavaTimeZone
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -20,14 +19,14 @@ fun LocalDate.formatDisplay(): String {
 }
 
 fun LocalDate.toEpochMillis(): Long {
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC").toJavaTimeZone())
+    val calendar = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
     calendar.set(this.year, this.monthNumber - 1, this.dayOfMonth, 0, 0, 0)
     calendar.set(Calendar.MILLISECOND, 0)
     return calendar.timeInMillis
 }
 
 fun fromEpochMillis(millis: Long): LocalDate {
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC").toJavaTimeZone())
+    val calendar = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
     calendar.timeInMillis = millis
     return LocalDate(
         calendar.get(Calendar.YEAR),
