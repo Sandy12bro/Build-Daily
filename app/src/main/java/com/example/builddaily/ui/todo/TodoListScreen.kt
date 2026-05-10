@@ -105,7 +105,10 @@ fun TodoListScreen(
                             onDelete = { 
                                 viewModel.deleteTodo(todo.id)
                                 ActionMessageManager.postMessage("Task deleted forever.", ActionType.DELETED)
-                            }
+                            },
+                            onAddSubTask = { title -> viewModel.addSubTask(todo.id, title) },
+                            onToggleSubTask = { subId -> viewModel.toggleSubTask(todo.id, subId) },
+                            onDeleteSubTask = { subId -> viewModel.deleteSubTask(todo.id, subId) }
                         )
                     }
                 }
@@ -115,10 +118,19 @@ fun TodoListScreen(
 }
 
 @Composable
-fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit) {
+fun BeautifulTodoCard(
+    todo: TodoItem, 
+    onToggle: () -> Unit, 
+    onDelete: () -> Unit,
+    onAddSubTask: (String) -> Unit,
+    onToggleSubTask: (String) -> Unit,
+    onDeleteSubTask: (String) -> Unit
+) {
     val categoryColor = getCategoryColor(todo.category)
     val scale by animateFloatAsState(if (todo.isCompleted) 0.98f else 1f)
     val alpha by animateFloatAsState(if (todo.isCompleted) 0.6f else 1f)
+    var isExpanded by remember { mutableStateOf(false) }
+    var newSubTaskTitle by remember { mutableStateOf("") }
     
     val dateText = remember(todo.createdAt) {
         val formatter = DateTimeFormatter.ofPattern("hh:mm a")
@@ -140,7 +152,7 @@ fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit
                 ),
                 RoundedCornerShape(24.dp)
             )
-            .clickable { onToggle() }
+            .clickable { isExpanded = !isExpanded }
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -188,6 +200,74 @@ fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit
                 }
             }
 
+            // Subtasks Section
+            AnimatedVisibility(visible = isExpanded) {
+                Column(modifier = Modifier.padding(top = 16.dp)) {
+                    todo.subtasks.forEach { subTask ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = subTask.isCompleted,
+                                onCheckedChange = { onToggleSubTask(subTask.id) },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = categoryColor,
+                                    uncheckedColor = Color.White.copy(alpha = 0.3f),
+                                    checkmarkColor = Color.Black
+                                )
+                            )
+                            Text(
+                                text = subTask.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (subTask.isCompleted) Color.White.copy(alpha = 0.3f) else Color.White,
+                                textDecoration = if (subTask.isCompleted) TextDecoration.LineThrough else null,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { onDeleteSubTask(subTask.id) }) {
+                                Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+
+                    // Add Subtask Input
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = newSubTaskTitle,
+                            onValueChange = { newSubTaskTitle = it },
+                            placeholder = { Text("Add subtask...", color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
+                            modifier = Modifier.weight(1f),
+                            colors = TextFieldDefaults.colors(
+                                containerColor = Color.Transparent,
+                                focusedIndicatorColor = categoryColor,
+                                unfocusedIndicatorColor = Color.White.copy(alpha = 0.1f),
+                                cursorColor = categoryColor,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            singleLine = true
+                        )
+                        IconButton(
+                            onClick = {
+                                if (newSubTaskTitle.isNotBlank()) {
+                                    onAddSubTask(newSubTaskTitle)
+                                    newSubTaskTitle = ""
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Default.Add, null, tint = categoryColor)
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -199,6 +279,21 @@ fun BeautifulTodoCard(todo: TodoItem, onToggle: () -> Unit, onDelete: () -> Unit
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Subtask Count
+                    if (todo.subtasks.isNotEmpty()) {
+                        val subCompleted = todo.subtasks.count { it.isCompleted }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.List, null, tint = categoryColor, modifier = Modifier.size(12.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "$subCompleted/${todo.subtasks.size}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = categoryColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
                     // Created Date
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Schedule, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(12.dp))

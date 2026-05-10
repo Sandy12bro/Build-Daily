@@ -3,6 +3,13 @@ package com.example.builddaily.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class SubTask(
+    val id: String,
+    val title: String,
+    val isCompleted: Boolean = false
+)
+
+@Serializable
 data class TodoItem(
     val id: String,
     val title: String,
@@ -10,7 +17,8 @@ data class TodoItem(
     val priority: TodoPriority = TodoPriority.MEDIUM,
     val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val deadline: Long? = null
+    val deadline: Long? = null,
+    val subtasks: List<SubTask> = emptyList()
 )
 
 enum class TodoPriority {

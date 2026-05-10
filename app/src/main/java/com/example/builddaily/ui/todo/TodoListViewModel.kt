@@ -22,7 +22,8 @@ class TodoListViewModel(
             title = title,
             category = category,
             priority = priority,
-            deadline = deadline
+            deadline = deadline,
+            subtasks = emptyList()
         )
         viewModelScope.launch {
             repository.saveTodo(newItem)
@@ -36,6 +37,38 @@ class TodoListViewModel(
             if (newStatus) {
                 statsRepository.addPoints(5) // Smaller bonus for quick todos
             }
+        }
+    }
+
+    fun addSubTask(todoId: String, title: String) {
+        if (title.isBlank()) return
+        val todo = todos.value.find { it.id == todoId } ?: return
+        val newSubTask = com.example.builddaily.data.model.SubTask(
+            id = UUID.randomUUID().toString(),
+            title = title,
+            isCompleted = false
+        )
+        val updatedSubtasks = todo.subtasks + newSubTask
+        viewModelScope.launch {
+            repository.saveTodo(todo.copy(subtasks = updatedSubtasks))
+        }
+    }
+
+    fun toggleSubTask(todoId: String, subTaskId: String) {
+        val todo = todos.value.find { it.id == todoId } ?: return
+        val updatedSubtasks = todo.subtasks.map {
+            if (it.id == subTaskId) it.copy(isCompleted = !it.isCompleted) else it
+        }
+        viewModelScope.launch {
+            repository.saveTodo(todo.copy(subtasks = updatedSubtasks))
+        }
+    }
+
+    fun deleteSubTask(todoId: String, subTaskId: String) {
+        val todo = todos.value.find { it.id == todoId } ?: return
+        val updatedSubtasks = todo.subtasks.filter { it.id != subTaskId }
+        viewModelScope.launch {
+            repository.saveTodo(todo.copy(subtasks = updatedSubtasks))
         }
     }
 
