@@ -245,7 +245,9 @@ fun BeautifulTodoCard(
                             placeholder = { Text("Add subtask...", color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
                             modifier = Modifier.weight(1f),
                             colors = TextFieldDefaults.colors(
-                                containerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
                                 focusedIndicatorColor = categoryColor,
                                 unfocusedIndicatorColor = Color.White.copy(alpha = 0.1f),
                                 cursorColor = categoryColor,
