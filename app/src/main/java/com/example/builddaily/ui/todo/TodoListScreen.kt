@@ -34,9 +34,8 @@ import com.example.builddaily.ui.components.AppTitleWithLogo
 import com.example.builddaily.ui.theme.*
 import com.example.builddaily.util.ActionMessageManager
 import com.example.builddaily.util.ActionType
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,9 +132,8 @@ fun BeautifulTodoCard(
     var newSubTaskTitle by remember { mutableStateOf("") }
     
     val dateText = remember(todo.createdAt) {
-        val formatter = DateTimeFormatter.ofPattern("hh:mm a")
-            .withZone(ZoneId.systemDefault())
-        formatter.format(Instant.ofEpochMilli(todo.createdAt))
+        val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        sdf.format(Date(todo.createdAt))
     }
 
     Box(
@@ -285,7 +283,7 @@ fun BeautifulTodoCard(
                     if (todo.subtasks.isNotEmpty()) {
                         val subCompleted = todo.subtasks.count { it.isCompleted }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.List, null, tint = categoryColor, modifier = Modifier.size(12.dp))
+                            Icon(Icons.AutoMirrored.Filled.List, null, tint = categoryColor, modifier = Modifier.size(12.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "$subCompleted/${todo.subtasks.size}",
@@ -311,9 +309,8 @@ fun BeautifulTodoCard(
                     // Deadline (if exists)
                     todo.deadline?.let { dl ->
                         val dlText = remember(dl) {
-                            val formatter = DateTimeFormatter.ofPattern("MMM dd, hh:mm a")
-                                .withZone(ZoneId.systemDefault())
-                            formatter.format(Instant.ofEpochMilli(dl))
+                            val sdf = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
+                            sdf.format(Date(dl))
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Event, null, tint = SolarYellow, modifier = Modifier.size(12.dp))

@@ -27,9 +27,7 @@ import com.example.builddaily.data.repository.TodoListRepository
 import com.example.builddaily.ui.theme.*
 import com.example.builddaily.util.ActionMessageManager
 import com.example.builddaily.util.ActionType
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,8 +49,8 @@ fun AddTodoScreen(
 
     val deadlineText = remember(deadline) {
         deadline?.let {
-            val dt = LocalDateTime.ofEpochSecond(it / 1000, 0, ZoneOffset.UTC)
-            dt.format(DateTimeFormatter.ofPattern("MMM dd, hh:mm a"))
+            val sdf = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
+            sdf.format(Date(it))
         } ?: "No deadline set"
     }
 

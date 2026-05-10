@@ -33,6 +33,7 @@ import com.example.builddaily.util.NotificationLog
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,7 +170,7 @@ fun NotificationLogItem(log: NotificationLog) {
     val dateTime = Instant.fromEpochMilliseconds(log.timestamp)
         .toLocalDateTime(TimeZone.currentSystemDefault())
     val timeStr = "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
-    val dateStr = "${dateTime.dayOfMonth} ${dateTime.month.name.lowercase().capitalize()}"
+    val dateStr = "${dateTime.dayOfMonth} ${dateTime.month.name.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
 
     Card(
         modifier = Modifier.fillMaxWidth(),
