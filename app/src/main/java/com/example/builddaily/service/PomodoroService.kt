@@ -10,8 +10,9 @@ import com.example.builddaily.data.model.PomodoroSession
 import com.example.builddaily.data.repository.PomodoroRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class PomodoroService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -97,12 +98,13 @@ class PomodoroService : Service() {
                 
                 // Save session stats
                 val repo = PomodoroRepository(this@PomodoroService)
+                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
                 repo.saveSession(
                     PomodoroSession(
                         mode = currentModeLabel.value,
                         durationMinutes = initialDurationMinutes,
                         timestamp = System.currentTimeMillis(),
-                        date = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                        date = today
                     )
                 )
 

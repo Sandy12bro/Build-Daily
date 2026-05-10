@@ -440,7 +440,14 @@ fun SessionItem(session: com.example.builddaily.data.model.PomodoroSession) {
                     maxLines = 1
                 )
                 Text(
-                    text = java.time.LocalDate.parse(session.date).format(java.time.format.DateTimeFormatter.ofPattern("dd MMM")),
+                    text = remember(session.date) {
+                        try {
+                            val date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).parse(session.date)
+                            java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault()).format(date)
+                        } catch (e: Exception) {
+                            session.date
+                        }
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.4f)
                 )

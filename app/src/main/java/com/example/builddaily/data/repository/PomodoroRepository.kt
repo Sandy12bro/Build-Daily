@@ -5,8 +5,11 @@ import com.example.builddaily.data.model.PomodoroSession
 import com.example.builddaily.data.model.PomodoroStats
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.daysUntil
 
 class PomodoroRepository(context: Context) {
     private val prefs = context.getSharedPreferences("pomodoro_stats_prefs", Context.MODE_PRIVATE)
@@ -44,17 +47,26 @@ class PomodoroRepository(context: Context) {
 
     private fun updateStats(session: PomodoroSession) {
         val stats = getStats()
-        val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+        val currentDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val today = currentDateTime.date
+        val todayStr = today.toString()
         
         var newStreak = stats.dayStreak
         if (stats.lastFocusDate.isNotEmpty()) {
-            val lastDate = LocalDate.parse(stats.lastFocusDate)
-            val currentDate = LocalDate.now()
-            
-            if (lastDate.plusDays(1) == currentDate) {
-                newStreak += 1
-            } else if (lastDate != currentDate) {
-                newStreak = 1 // Reset if missed a day
+            try {
+                val lastDate = LocalDate.parse(stats.lastFocusDate)
+                val diff = lastDate.daysUntil(today)
+                
+                if (diff == 1) {
+                    newStreak += 1
+                } else if (diff > 1) {
+                    newStreak = 1 // Reset if missed a day
+                } else if (diff < 0) {
+                    // Date changed backwards or same day? Handle it
+                    if (diff < 0) newStreak = 1
+                }
+            } catch (e: Exception) {
+                newStreak = 1
             }
         } else {
             newStreak = 1
@@ -63,7 +75,7 @@ class PomodoroRepository(context: Context) {
         val newStats = stats.copy(
             totalFocusMinutes = stats.totalFocusMinutes + session.durationMinutes,
             dayStreak = newStreak,
-            lastFocusDate = today
+            lastFocusDate = todayStr
         )
         prefs.edit().putString("stats", json.encodeToString(newStats)).apply()
     }
