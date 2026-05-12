@@ -51,6 +51,7 @@ import android.content.Intent
 
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.LocalDrink
+import androidx.compose.material.icons.filled.Book
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +60,8 @@ fun MoreScreen(
     onNavigateToPomodoro: () -> Unit,
     onNavigateToTodoList: () -> Unit,
     onNavigateToEvolution: () -> Unit,
-    onNavigateToHydration: () -> Unit
+    onNavigateToHydration: () -> Unit,
+    onNavigateToJournal: () -> Unit
 ) {
     val context = LocalContext.current
     var showShareDialog by remember { mutableStateOf(false) }
@@ -112,6 +114,14 @@ fun MoreScreen(
                 "Track daily fluid & wellness vibes"
             ) {
                 onNavigateToHydration()
+            }
+
+            MoreOption(
+                Icons.Default.Book, 
+                "Daily Journal & Notes", 
+                "Premium second brain & diary vault"
+            ) {
+                onNavigateToJournal()
             }
 
             MoreOption(
