@@ -77,4 +77,30 @@ class TodoListViewModel(
             repository.deleteTodo(id)
         }
     }
+
+    fun updateTodo(todoId: String, newTitle: String, newCategory: String, newPriority: TodoPriority, newDeadline: Long?) {
+        if (newTitle.isBlank()) return
+        val todo = todos.value.find { it.id == todoId } ?: return
+        viewModelScope.launch {
+            repository.saveTodo(
+                todo.copy(
+                    title = newTitle,
+                    category = newCategory,
+                    priority = newPriority,
+                    deadline = newDeadline
+                )
+            )
+        }
+    }
+
+    fun updateSubTaskTitle(todoId: String, subTaskId: String, newTitle: String) {
+        if (newTitle.isBlank()) return
+        val todo = todos.value.find { it.id == todoId } ?: return
+        val updatedSubtasks = todo.subtasks.map {
+            if (it.id == subTaskId) it.copy(title = newTitle) else it
+        }
+        viewModelScope.launch {
+            repository.saveTodo(todo.copy(subtasks = updatedSubtasks))
+        }
+    }
 }

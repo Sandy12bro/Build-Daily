@@ -108,7 +108,15 @@ fun TodoListScreen(
                             },
                             onAddSubTask = { title -> viewModel.addSubTask(todo.id, title) },
                             onToggleSubTask = { subId -> viewModel.toggleSubTask(todo.id, subId) },
-                            onDeleteSubTask = { subId -> viewModel.deleteSubTask(todo.id, subId) }
+                            onDeleteSubTask = { subId -> viewModel.deleteSubTask(todo.id, subId) },
+                            onUpdateTodo = { newTitle, newCategory, newPriority, newDeadline ->
+                                viewModel.updateTodo(todo.id, newTitle, newCategory, newPriority, newDeadline)
+                                ActionMessageManager.postMessage("Task updated successfully.", ActionType.UPDATED)
+                            },
+                            onUpdateSubTaskTitle = { subId, newTitle ->
+                                viewModel.updateSubTaskTitle(todo.id, subId, newTitle)
+                                ActionMessageManager.postMessage("Subtask renamed.", ActionType.UPDATED)
+                            }
                         )
                     }
                 }
@@ -124,13 +132,18 @@ fun BeautifulTodoCard(
     onDelete: () -> Unit,
     onAddSubTask: (String) -> Unit,
     onToggleSubTask: (String) -> Unit,
-    onDeleteSubTask: (String) -> Unit
+    onDeleteSubTask: (String) -> Unit,
+    onUpdateTodo: (newTitle: String, newCategory: String, newPriority: TodoPriority, newDeadline: Long?) -> Unit,
+    onUpdateSubTaskTitle: (subTaskId: String, newTitle: String) -> Unit
 ) {
     val categoryColor = getCategoryColor(todo.category)
     val scale by animateFloatAsState(if (todo.isCompleted) 0.98f else 1f)
     val alpha by animateFloatAsState(if (todo.isCompleted) 0.6f else 1f)
     var isExpanded by remember { mutableStateOf(false) }
     var newSubTaskTitle by remember { mutableStateOf("") }
+    
+    var showEditTodoDialog by remember { mutableStateOf(false) }
+    var subTaskToEdit by remember { mutableStateOf<com.example.builddaily.data.model.SubTask?>(null) }
     
     val dateText = remember(todo.createdAt) {
         val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
@@ -225,8 +238,13 @@ fun BeautifulTodoCard(
                                 textDecoration = if (subTask.isCompleted) TextDecoration.LineThrough else null,
                                 modifier = Modifier.weight(1f)
                             )
-                            IconButton(onClick = { onDeleteSubTask(subTask.id) }) {
-                                Icon(Icons.Default.Close, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { subTaskToEdit = subTask }, modifier = Modifier.size(28.dp)) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit Subtask", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                                }
+                                IconButton(onClick = { onDeleteSubTask(subTask.id) }, modifier = Modifier.size(28.dp)) {
+                                    Icon(Icons.Default.Close, contentDescription = "Delete Subtask", tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(14.dp))
+                                }
                             }
                         }
                     }
@@ -326,14 +344,150 @@ fun BeautifulTodoCard(
                     }
                 }
 
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(Icons.Default.DeleteOutline, null, tint = FlareRed.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { showEditTodoDialog = true },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Task", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(Icons.Default.DeleteOutline, contentDescription = "Delete Task", tint = FlareRed.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
+                    }
                 }
             }
         }
+    }
+
+    // Modal Edit Task Dialog
+    if (showEditTodoDialog) {
+        var editedTitle by remember { mutableStateOf(todo.title) }
+        var editedCategory by remember { mutableStateOf(todo.category) }
+        var editedPriority by remember { mutableStateOf(todo.priority) }
+        
+        AlertDialog(
+            onDismissRequest = { showEditTodoDialog = false },
+            containerColor = DeepVoid,
+            titleContentColor = Color.White,
+            title = { Text("Edit Task", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editedTitle,
+                        onValueChange = { editedTitle = it },
+                        label = { Text("Task Title", color = Color.White.copy(alpha = 0.6f)) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = categoryColor,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = editedCategory,
+                        onValueChange = { editedCategory = it },
+                        label = { Text("Category", color = Color.White.copy(alpha = 0.6f)) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = categoryColor,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Column {
+                        Text("Priority", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TodoPriority.values().forEach { p ->
+                                val sel = editedPriority == p
+                                val pColor = when(p) {
+                                    TodoPriority.LOW -> MintGreen
+                                    TodoPriority.MEDIUM -> SolarYellow
+                                    TodoPriority.HIGH -> FlareRed
+                                }
+                                Button(
+                                    onClick = { editedPriority = p },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (sel) pColor else Color.White.copy(alpha = 0.05f)
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                    contentPadding = PaddingValues(vertical = 6.dp)
+                                ) {
+                                    Text(p.name, color = if (sel) SpaceBlack else Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (editedTitle.isNotBlank()) {
+                            onUpdateTodo(editedTitle, editedCategory, editedPriority, todo.deadline)
+                            showEditTodoDialog = false
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = categoryColor)
+                ) {
+                    Text("Save", color = SpaceBlack, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditTodoDialog = false }) {
+                    Text("Cancel", color = Color.White.copy(alpha = 0.6f))
+                }
+            }
+        )
+    }
+
+    // Modal Edit Subtask Dialog
+    subTaskToEdit?.let { st ->
+        var editedSubTitle by remember { mutableStateOf(st.title) }
+        AlertDialog(
+            onDismissRequest = { subTaskToEdit = null },
+            containerColor = DeepVoid,
+            titleContentColor = Color.White,
+            title = { Text("Edit Subtask", fontWeight = FontWeight.Bold) },
+            text = {
+                OutlinedTextField(
+                    value = editedSubTitle,
+                    onValueChange = { editedSubTitle = it },
+                    label = { Text("Subtask Title", color = Color.White.copy(alpha = 0.6f)) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = categoryColor,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.2f)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (editedSubTitle.isNotBlank()) {
+                            onUpdateSubTaskTitle(st.id, editedSubTitle)
+                            subTaskToEdit = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = categoryColor)
+                ) {
+                    Text("Save", color = SpaceBlack, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { subTaskToEdit = null }) {
+                    Text("Cancel", color = Color.White.copy(alpha = 0.6f))
+                }
+            }
+        )
     }
 }
 
