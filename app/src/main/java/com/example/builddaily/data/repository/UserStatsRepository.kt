@@ -55,6 +55,13 @@ class UserStatsRepository(private val context: Context) {
         _stats.value = updated
     }
 
+    fun awardXP(points: Int) {
+        val current = _stats.value
+        val updated = current.copy(totalPoints = current.totalPoints + points)
+        saveStats(updated)
+        _stats.value = updated
+    }
+
     private fun saveStats(stats: UserStats) {
         prefs.edit().apply {
             putInt("total_points", stats.totalPoints)

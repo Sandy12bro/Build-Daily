@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
 
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.LocalDrink
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +58,8 @@ fun MoreScreen(
     onNavigateToNotifications: () -> Unit,
     onNavigateToPomodoro: () -> Unit,
     onNavigateToTodoList: () -> Unit,
-    onNavigateToEvolution: () -> Unit
+    onNavigateToEvolution: () -> Unit,
+    onNavigateToHydration: () -> Unit
 ) {
     val context = LocalContext.current
     var showShareDialog by remember { mutableStateOf(false) }
@@ -102,6 +104,14 @@ fun MoreScreen(
                 "Focus with the galactic timer"
             ) {
                 onNavigateToPomodoro()
+            }
+
+            MoreOption(
+                Icons.Default.LocalDrink, 
+                "Water Intake & Hydration", 
+                "Track daily fluid & wellness vibes"
+            ) {
+                onNavigateToHydration()
             }
 
             MoreOption(

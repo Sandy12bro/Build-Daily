@@ -153,7 +153,8 @@ fun BuildDailyApp() {
                         onNavigateToNotifications = { navController.navigate("notification_settings") },
                         onNavigateToPomodoro = { navController.navigate("pomodoro") },
                         onNavigateToTodoList = { navController.navigate("to_do_list") },
-                        onNavigateToEvolution = { navController.navigate("evolution") }
+                        onNavigateToEvolution = { navController.navigate("evolution") },
+                        onNavigateToHydration = { navController.navigate("hydration") }
                     )
                 }
                 composable("evolution") {
@@ -187,6 +188,12 @@ fun BuildDailyApp() {
                 }
                 composable("add_todo") {
                     com.example.builddaily.ui.todo.AddTodoScreen(
+                        onBack = { navController.popBackStack() },
+                        statsRepository = statsRepository
+                    )
+                }
+                composable("hydration") {
+                    com.example.builddaily.ui.hydration.HydrationScreen(
                         onBack = { navController.popBackStack() },
                         statsRepository = statsRepository
                     )
