@@ -1,5 +1,7 @@
 package com.example.builddaily.ui.todo
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -136,6 +138,7 @@ fun BeautifulTodoCard(
     onUpdateTodo: (newTitle: String, newCategory: String, newPriority: TodoPriority, newDeadline: Long?) -> Unit,
     onUpdateSubTaskTitle: (subTaskId: String, newTitle: String) -> Unit
 ) {
+    val context = LocalContext.current
     val categoryColor = getCategoryColor(todo.category)
     val scale by animateFloatAsState(if (todo.isCompleted) 0.98f else 1f)
     val alpha by animateFloatAsState(if (todo.isCompleted) 0.6f else 1f)
@@ -368,6 +371,31 @@ fun BeautifulTodoCard(
         var editedTitle by remember { mutableStateOf(todo.title) }
         var editedCategory by remember { mutableStateOf(todo.category) }
         var editedPriority by remember { mutableStateOf(todo.priority) }
+        var editedDeadline by remember { mutableStateOf(todo.deadline) }
+
+        val editedDeadlineText = remember(editedDeadline) {
+            editedDeadline?.let {
+                val sdf = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
+                sdf.format(Date(it))
+            } ?: "No deadline set"
+        }
+
+        fun showEditDateTimePicker() {
+            val currentDateTime = Calendar.getInstance()
+            val startYear = currentDateTime.get(Calendar.YEAR)
+            val startMonth = currentDateTime.get(Calendar.MONTH)
+            val startDay = currentDateTime.get(Calendar.DAY_OF_MONTH)
+            val startHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
+            val startMinute = currentDateTime.get(Calendar.MINUTE)
+
+            DatePickerDialog(context, { _, year, month, day ->
+                TimePickerDialog(context, { _, hour, minute ->
+                    val pickedDateTime = Calendar.getInstance()
+                    pickedDateTime.set(year, month, day, hour, minute)
+                    editedDeadline = pickedDateTime.timeInMillis
+                }, startHour, startMinute, false).show()
+            }, startYear, startMonth, startDay).show()
+        }
         
         AlertDialog(
             onDismissRequest = { showEditTodoDialog = false },
@@ -400,6 +428,43 @@ fun BeautifulTodoCard(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+                    
+                    // Deadline Editor Row
+                    Column {
+                        Text("Deadline", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            onClick = { showEditDateTimePicker() },
+                            color = Color.White.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.CalendarMonth, null, tint = categoryColor, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = editedDeadlineText,
+                                    color = if (editedDeadline != null) Color.White else Color.White.copy(alpha = 0.3f),
+                                    fontSize = 12.sp,
+                                    fontWeight = if (editedDeadline != null) FontWeight.Bold else FontWeight.Normal
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                if (editedDeadline != null) {
+                                    TextButton(
+                                        onClick = { editedDeadline = null },
+                                        contentPadding = PaddingValues(0.dp),
+                                        modifier = Modifier.height(20.dp)
+                                    ) {
+                                        Text("Clear", color = FlareRed, fontSize = 10.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     Column {
                         Text("Priority", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(4.dp))
@@ -430,7 +495,7 @@ fun BeautifulTodoCard(
                 Button(
                     onClick = {
                         if (editedTitle.isNotBlank()) {
-                            onUpdateTodo(editedTitle, editedCategory, editedPriority, todo.deadline)
+                            onUpdateTodo(editedTitle, editedCategory, editedPriority, editedDeadline)
                             showEditTodoDialog = false
                         }
                     },
