@@ -63,6 +63,8 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import androidx.compose.ui.platform.LocalContext
+import com.example.builddaily.data.repository.UserStatsRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +74,9 @@ fun AddTaskScreen(
     onBack: () -> Unit,
     onTaskSaved: () -> Unit
 ) {
-    val viewModel = remember { AddTaskViewModel(repository) }
+    val context = LocalContext.current
+    val statsRepository = remember { UserStatsRepository(context) }
+    val viewModel = remember { AddTaskViewModel(repository, statsRepository) }
     val title by viewModel.title.collectAsState()
     val description by viewModel.description.collectAsState()
     val date by viewModel.date.collectAsState()

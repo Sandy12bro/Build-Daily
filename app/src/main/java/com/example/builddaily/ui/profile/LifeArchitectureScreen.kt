@@ -80,20 +80,20 @@ fun LifeArchitectureScreen(
 
                 // The Central Plant/Crystal
                 LifeArchitectureHUD(
-                    stats = if (isPreviewMode) stats.copy(firstStartDate = System.currentTimeMillis() - (95L * 24 * 60 * 60 * 1000)) else stats
+                    stats = if (isPreviewMode) stats.copy(currentStreak = 95, lastCompletionDate = com.example.builddaily.util.today().toString()) else stats
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
 
                 // Detailed Stats
-                EvolutionStatCard("Total Points", "${stats.totalPoints} XP")
-                EvolutionStatCard("Tasks Completed", "${stats.totalTasksCompleted} Missions")
-                EvolutionStatCard("Current Streak", "${stats.currentStreak} Days")
+                EvolutionStatCard("Current Streak", "${stats.effectiveCurrentStreak} Days")
+                EvolutionStatCard("Top Streak", "${stats.maxStreak} Days")
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                val nextStreak = getNextEvolutionStreak(stats.effectiveCurrentStreak)
                 Text(
-                    text = "NEXT EVOLUTION AT ${getNextEvolutionPoints(stats.totalPoints)} XP",
+                    text = if (stats.effectiveCurrentStreak >= 30) "MAXIMUM EVOLUTION REACHED" else "NEXT EVOLUTION AT $nextStreak DAYS STREAK",
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White.copy(alpha = 0.5f),
                     fontWeight = FontWeight.Bold,
@@ -101,7 +101,7 @@ fun LifeArchitectureScreen(
                 )
                 
                 LinearProgressIndicator(
-                    progress = getEvolutionProgress(stats.totalPoints),
+                    progress = { getEvolutionStreakProgress(stats.effectiveCurrentStreak) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp)
@@ -146,25 +146,25 @@ fun EvolutionStatCard(label: String, value: String) {
     }
 }
 
-fun getNextEvolutionPoints(points: Int): Int {
+fun getNextEvolutionStreak(streak: Int): Int {
     return when {
-        points < 50 -> 50
-        points < 200 -> 200
-        points < 500 -> 500
-        points < 1000 -> 1000
-        else -> points + 500
+        streak < 3 -> 3
+        streak < 7 -> 7
+        streak < 14 -> 14
+        streak < 30 -> 30
+        else -> 30
     }
 }
 
-fun getEvolutionProgress(points: Int): Float {
+fun getEvolutionStreakProgress(streak: Int): Float {
+    if (streak >= 30) return 1f
     val currentRangeStart = when {
-        points < 50 -> 0
-        points < 200 -> 50
-        points < 500 -> 200
-        points < 1000 -> 500
-        else -> points - (points % 500)
+        streak < 3 -> 0
+        streak < 7 -> 3
+        streak < 14 -> 7
+        else -> 14
     }
-    val currentRangeEnd = getNextEvolutionPoints(points)
-    val progress = (points - currentRangeStart).toFloat() / (currentRangeEnd - currentRangeStart)
+    val currentRangeEnd = getNextEvolutionStreak(streak)
+    val progress = (streak - currentRangeStart).toFloat() / (currentRangeEnd - currentRangeStart)
     return progress.coerceIn(0f, 1f)
 }

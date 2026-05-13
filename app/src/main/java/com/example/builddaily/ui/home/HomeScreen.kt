@@ -34,6 +34,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -116,17 +118,17 @@ fun HomeScreen(
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = GraphicsColor.Transparent),
-                title = {
-                    Column {
-                        com.example.builddaily.ui.components.AppTitleWithLogo("Build Daily")
-                        Text(
-                            today().formatDisplay(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(start = 44.dp)
-                        )
+                    title = {
+                        Column {
+                            com.example.builddaily.ui.components.AppTitleWithLogo("Build Daily")
+                            Text(
+                                today().formatDisplay(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                                modifier = Modifier.padding(start = 44.dp)
+                            )
+                        }
                     }
-                }
                 )
             },
             floatingActionButton = {

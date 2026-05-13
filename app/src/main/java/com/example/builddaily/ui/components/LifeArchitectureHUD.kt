@@ -131,7 +131,7 @@ fun LifeArchitectureHUD(stats: UserStats) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = getAncientStageName(stats.daysActive).uppercase(),
+            text = if (stats.effectiveCurrentStreak > 0) getAncientStageName(stats.effectiveCurrentStreak).uppercase() else "DORMANT SEEDLING",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Black,
             color = Color.White,
@@ -139,9 +139,9 @@ fun LifeArchitectureHUD(stats: UserStats) {
         )
         
         Text(
-            text = "EVOLUTION CYCLE DAY ${stats.daysActive}",
+            text = if (stats.effectiveCurrentStreak > 0) "EVOLUTION STREAK DAY ${stats.effectiveCurrentStreak}" else "Streak broken — start growing again 🌱",
             style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF00BFA5).copy(alpha = 0.5f),
+            color = if (stats.effectiveCurrentStreak > 0) Color(0xFF00BFA5).copy(alpha = 0.5f) else Color.White.copy(alpha = 0.5f),
             letterSpacing = 2.sp
         )
     }
@@ -328,10 +328,10 @@ fun DrawScope.drawAtmosphericParticles(x: Float, y: Float, progress: Float) {
 
 fun getAncientStageName(days: Int): String {
     return when {
-        days < 10 -> "Sleeping Seed"
-        days < 30 -> "Emerald Sprout"
-        days < 60 -> "Strong Sentinel"
-        days < 80 -> "Ancient Wisdom Tree"
-        else -> "Eternal World Tree"
+        days < 3 -> "Small Seed"
+        days < 7 -> "Tiny Plant"
+        days < 14 -> "Medium Plant"
+        days < 30 -> "Large Tree"
+        else -> "Giant Glowing Tree"
     }
 }

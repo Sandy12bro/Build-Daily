@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AddTaskViewModel(
-    private val repository: TaskRepository
+    private val repository: TaskRepository,
+    private val statsRepository: com.example.builddaily.data.repository.UserStatsRepository
 ) : ViewModel() {
 
     private val deviceId = repository.deviceId
@@ -123,6 +124,7 @@ class AddTaskViewModel(
                     repository.insertTask(task)
                     ActionMessageManager.postMessage("Task added successfully! 💪", ActionType.ADDED)
                 }
+                statsRepository.recalculateStreak(repository)
                 _saveSuccess.value = true
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to save task"

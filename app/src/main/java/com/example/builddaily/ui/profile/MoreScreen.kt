@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,10 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -43,15 +39,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.builddaily.ui.components.AppTitleWithLogo
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
 
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.LocalDrink
-import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.MenuBook
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,10 +56,10 @@ fun MoreScreen(
     onNavigateToTodoList: () -> Unit,
     onNavigateToEvolution: () -> Unit,
     onNavigateToHydration: () -> Unit,
-    onNavigateToJournal: () -> Unit
+    onNavigateToBuyList: () -> Unit,
+    onNavigateToBookLibrary: () -> Unit
 ) {
     val context = LocalContext.current
-    var showShareDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -79,7 +74,7 @@ fun MoreScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -109,19 +104,27 @@ fun MoreScreen(
             }
 
             MoreOption(
-                Icons.Default.LocalDrink, 
-                "Water Intake & Hydration", 
+                Icons.Default.LocalDrink,
+                "Water Intake & Hydration",
                 "Track daily fluid & wellness vibes"
             ) {
                 onNavigateToHydration()
             }
 
             MoreOption(
-                Icons.Default.Book, 
-                "Daily Journal & Notes", 
-                "Premium second brain & diary vault"
+                Icons.Default.ShoppingCart,
+                "Buy List & Budget",
+                "Plan purchases & track savings"
             ) {
-                onNavigateToJournal()
+                onNavigateToBuyList()
+            }
+
+            MoreOption(
+                Icons.Default.MenuBook,
+                "Book Library",
+                "Track reading & build knowledge"
+            ) {
+                onNavigateToBookLibrary()
             }
 
             MoreOption(

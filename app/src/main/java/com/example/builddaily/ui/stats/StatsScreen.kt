@@ -33,6 +33,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -89,13 +90,15 @@ import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
-    repository: TaskRepository
+    repository: TaskRepository,
+    statsRepository: com.example.builddaily.data.repository.UserStatsRepository? = null
 ) {
     val viewModel = remember { StatsViewModel(repository) }
     val period by viewModel.period.collectAsState()
     val referenceDate by viewModel.referenceDate.collectAsState()
     val statsData by viewModel.statsData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val userStats by (statsRepository?.stats ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(null)
 
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
@@ -241,6 +244,16 @@ fun StatsScreen(
                     StatCard(label = "STREAK", value = "${statsData.streak}🔥", color = SolarYellow, modifier = Modifier.weight(1f))
                 }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Stats Grid - Row 3
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StatCard(label = "TOP STREAK", value = "${userStats?.maxStreak ?: 0}🔥", color = SolarYellow, modifier = Modifier.weight(1f))
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
@@ -305,7 +318,8 @@ fun StatsScreen(
                 ActivityHeatmap(
                     heatmapData = statsData.heatmapData,
                     period = period,
-                    referenceDate = referenceDate
+                    referenceDate = referenceDate,
+                    userStats = userStats
                 )
                 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -359,8 +373,12 @@ fun StatCard(label: String, value: String, color: Color, modifier: Modifier = Mo
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .height(80.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = color)
             Spacer(modifier = Modifier.height(4.dp))
@@ -392,7 +410,8 @@ fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
 fun ActivityHeatmap(
     heatmapData: Map<String, DayActivity>,
     period: StatsPeriod,
-    referenceDate: LocalDate
+    referenceDate: LocalDate,
+    userStats: com.example.builddaily.data.model.UserStats? = null
 ) {
     if (period == StatsPeriod.DAILY) return
     val displayData = remember(period, referenceDate) {
@@ -455,13 +474,16 @@ fun ActivityHeatmap(
                     var currentStreak = 0
                     var maxStreak = 0
                     displayData.forEach { date ->
-                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.75f) {
+                        val dayData = heatmapData[date.toString()]
+                        if (dayData != null && dayData.total > 0 && dayData.percentage >= 0.75f) {
                             currentStreak++; maxStreak = maxOf(maxStreak, currentStreak)
-                        } else currentStreak = 0
+                        } else {
+                            currentStreak = 0 // Missing day OR failed day BREAKS streak
+                        }
                     }
                     val topDay = displayData.maxByOrNull { heatmapData[it.toString()]?.percentage ?: 0f }
                     val topDayName = topDay?.dayOfWeek?.name?.take(3)?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "None"
-                    
+
                     Quadruple(activeDays, avgCompletion.toInt(), maxStreak, topDayName)
                 }
 
@@ -472,7 +494,8 @@ fun ActivityHeatmap(
                     ) {
                         SummaryItem(label = "Active", value = "${weeklySummary.first}d", modifier = Modifier.weight(1f))
                         SummaryItem(label = "Avg.", value = "${weeklySummary.second}%", modifier = Modifier.weight(1f))
-                        SummaryItem(label = "Streak", value = "${weeklySummary.third}🔥", modifier = Modifier.weight(1f))
+                        val finalWeeklyMax = maxOf(userStats?.maxStreak ?: 0, weeklySummary.third)
+                        SummaryItem(label = "Max Streak", value = "${finalWeeklyMax}🔥", modifier = Modifier.weight(1f))
                         SummaryItem(label = "Top", value = weeklySummary.fourth, modifier = Modifier.weight(1f))
                     }
 
@@ -537,13 +560,16 @@ fun ActivityHeatmap(
                     var maxStreak = 0
                     var currentStreak = 0
                     displayData.forEach { date ->
-                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.75f) {
+                        val dayData = heatmapData[date.toString()]
+                        if (dayData != null && dayData.total > 0 && dayData.percentage >= 0.75f) {
                             currentStreak++; maxStreak = maxOf(maxStreak, currentStreak)
-                        } else currentStreak = 0
+                        } else {
+                            currentStreak = 0 // Missing day OR failed day BREAKS streak
+                        }
                     }
                     val topDay = displayData.maxByOrNull { heatmapData[it.toString()]?.percentage ?: 0f }
                     val topDayInfo = if (topDay != null) "${topDay.dayOfMonth}" else "None"
-                    
+
                     Quadruple(activeDays, avgCompletion.toInt(), maxStreak, topDayInfo)
                 }
 
@@ -554,7 +580,8 @@ fun ActivityHeatmap(
                     ) {
                         SummaryItem(label = "Active", value = "${monthlySummary.first}d", modifier = Modifier.weight(1f))
                         SummaryItem(label = "Avg.", value = "${monthlySummary.second}%", modifier = Modifier.weight(1f))
-                        SummaryItem(label = "Streak", value = "${monthlySummary.third}🔥", modifier = Modifier.weight(1f))
+                        val finalMonthlyMax = maxOf(userStats?.maxStreak ?: 0, monthlySummary.third)
+                        SummaryItem(label = "Max Streak", value = "${finalMonthlyMax}🔥", modifier = Modifier.weight(1f))
                         SummaryItem(label = "Top Day", value = monthlySummary.fourth, modifier = Modifier.weight(1f))
                     }
 
@@ -635,14 +662,17 @@ fun ActivityHeatmap(
                     var maxStreak = 0
                     var currentStreak = 0
                     displayData.forEach { date ->
-                        if ((heatmapData[date.toString()]?.percentage ?: 0f) >= 0.75f) {
+                        val dayData = heatmapData[date.toString()]
+                        if (dayData != null && dayData.total > 0 && dayData.percentage >= 0.75f) {
                             currentStreak++; maxStreak = maxOf(maxStreak, currentStreak)
-                        } else currentStreak = 0
+                        } else {
+                            currentStreak = 0 // Missing day OR failed day BREAKS streak
+                        }
                     }
                     val monthStats = displayData.groupBy { it.monthNumber }.mapValues { it.value.map { heatmapData[it.toString()]?.percentage ?: 0f }.average() }
                     val topMonthNum = monthStats.maxByOrNull { it.value }?.key ?: 1
                     val topMonthName = LocalDate(2024, topMonthNum, 1).month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-                    
+
                     Quadruple(activeDays, avgCompletion.toInt(), maxStreak, topMonthName)
                 }
 
@@ -654,7 +684,8 @@ fun ActivityHeatmap(
                     Row(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SummaryItem(label = "Active", value = "${yearlySummary.first}d", modifier = Modifier.weight(1f))
                         SummaryItem(label = "Avg.", value = "${yearlySummary.second}%", modifier = Modifier.weight(1f))
-                        SummaryItem(label = "Streak", value = "${yearlySummary.third}🔥", modifier = Modifier.weight(1f))
+                        val finalYearlyMax = maxOf(userStats?.maxStreak ?: 0, yearlySummary.third)
+                        SummaryItem(label = "Max Streak", value = "${finalYearlyMax}🔥", modifier = Modifier.weight(1f))
                         SummaryItem(label = "Top", value = yearlySummary.fourth, modifier = Modifier.weight(1f))
                     }
 

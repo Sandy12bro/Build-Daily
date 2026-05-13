@@ -34,6 +34,8 @@ import com.example.builddaily.ui.stats.StatsScreen
 import com.example.builddaily.ui.pomodoro.PomodoroScreen
 import com.example.builddaily.ui.pomodoro.PomodoroViewModel
 import com.example.builddaily.data.repository.PomodoroRepository
+import com.example.builddaily.ui.buylist.BuyListScreen
+import com.example.builddaily.ui.booklibrary.BookLibraryScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
@@ -45,9 +47,11 @@ fun BuildDailyApp() {
     val context = LocalContext.current
     val deviceId = DeviceIdManager.getDeviceId(context)
     val repository = remember(deviceId) { TaskRepository(context, deviceId) }
-    val pomodoroRepo = remember { PomodoroRepository(context) }
+val pomodoroRepo = remember { PomodoroRepository(context) }
     val statsRepository = remember { com.example.builddaily.data.repository.UserStatsRepository(context) }
-    
+    val buyListRepository = remember { com.example.builddaily.data.repository.BuyListRepository(context) }
+    val bookRepository = remember { com.example.builddaily.data.repository.BookRepository(context) }
+
     // Shared Pomodoro ViewModel to persist across navigation
     val pomodoroViewModel: PomodoroViewModel = remember { PomodoroViewModel(pomodoroRepo) }
 
@@ -146,7 +150,7 @@ fun BuildDailyApp() {
                     )
                 }
                 composable("stats") {
-                    StatsScreen(repository = repository)
+                    StatsScreen(repository = repository, statsRepository = statsRepository)
                 }
                 composable("more") {
                     com.example.builddaily.ui.profile.MoreScreen(
@@ -155,7 +159,8 @@ fun BuildDailyApp() {
                         onNavigateToTodoList = { navController.navigate("to_do_list") },
                         onNavigateToEvolution = { navController.navigate("evolution") },
                         onNavigateToHydration = { navController.navigate("hydration") },
-                        onNavigateToJournal = { navController.navigate("journal") }
+                        onNavigateToBuyList = { navController.navigate("buy_list") },
+                        onNavigateToBookLibrary = { navController.navigate("book_library") }
                     )
                 }
                 composable("evolution") {
@@ -199,10 +204,16 @@ fun BuildDailyApp() {
                         statsRepository = statsRepository
                     )
                 }
-                composable("journal") {
-                    com.example.builddaily.ui.journal.JournalScreen(
+                composable("buy_list") {
+                    BuyListScreen(
                         onBack = { navController.popBackStack() },
-                        statsRepository = statsRepository
+                        repository = buyListRepository
+                    )
+                }
+                composable("book_library") {
+                    BookLibraryScreen(
+                        onBack = { navController.popBackStack() },
+                        repository = bookRepository
                     )
                 }
             }

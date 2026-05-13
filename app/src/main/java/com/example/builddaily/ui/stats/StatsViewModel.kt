@@ -182,7 +182,7 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
                     }
                 }
 
-                val streak = calculateStreak(repository.getTasksInRange(startDate.minus(30, DateTimeUnit.DAY).toString(), endDate.toString()), endDate)
+                val streak = calculateStreak(repository.getTasksInRange(today().minus(30, DateTimeUnit.DAY).toString(), today().toString()), today())
 
                 // Heatmap logic: Get tasks for last 365 days
                 val heatmapStartDate = today().minus(364, DateTimeUnit.DAY)
@@ -216,33 +216,51 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
     }
 
     private fun calculateStreak(tasks: List<Task>, fromDate: LocalDate): Int {
-        if (tasks.isEmpty()) return 0
-        val minDate = tasks.minOf { it.date }
+        if (tasks.isEmpty()) {
+            android.util.Log.d("StreakEngine", "StatsVM: No tasks at all → streak = 0")
+            return 0
+        }
+
+        val tasksByDate = tasks.groupBy { it.date }
+        android.util.Log.d("StreakEngine", "===========================================================")
+        android.util.Log.d("StreakEngine", "StatsVM: CALCULATE STREAK (backwards from $fromDate)")
+        android.util.Log.d("StreakEngine", "Total unique dates in data: ${tasksByDate.keys.size}")
+        android.util.Log.d("StreakEngine", "===========================================================")
+
         var streak = 0
         var date = fromDate
-        while (date.toString() >= minDate) {
-            val dayTasks = tasks.filter { it.date == date.toString() }
-            if (dayTasks.isEmpty()) {
-                // Check if we are still within the same year/range or just stop if no data
-                // For streak, we usually stop if there's a gap in days with tasks.
-                // But if there are no tasks on a day, we might not want to break the streak?
-                // Standard: if no tasks scheduled, streak continues.
-                date = date.minus(1, DateTimeUnit.DAY)
-                continue 
-            }
-            val completed = dayTasks.count { it.isCompleted }
-            val completionRate = completed.toFloat() / dayTasks.size
-            
-            if (completionRate >= 0.75f) { // 75% threshold
-                streak++
-                date = date.minus(1, DateTimeUnit.DAY)
-            } else {
+        var daysChecked = 0
+
+        while (daysChecked < 365) {
+            val dateStr = date.toString()
+            val dayTasks = tasksByDate[dateStr]
+
+            android.util.Log.d("StreakEngine", "  [Day $daysChecked] Checking $dateStr")
+
+            if (dayTasks == null || dayTasks.isEmpty()) {
+                android.util.Log.d("StreakEngine", "    → NO TASKS → BREAK IMMEDIATELY (streak reset)")
                 break
             }
-            
-            // Limit to prevent infinite loop just in case
-            if (streak > 365) break
+
+            val completed = dayTasks.count { it.isCompleted }
+            val total = dayTasks.size
+            val completionRate = if (total > 0) completed.toFloat() / total else 0f
+
+            android.util.Log.d("StreakEngine", "    → Tasks: $completed/$total (${(completionRate*100).toInt()}%)")
+
+            if (completionRate >= 0.75f) {
+                streak++
+                android.util.Log.d("StreakEngine", "    → VALID (>=75%) → streak = $streak")
+            } else {
+                android.util.Log.d("StreakEngine", "    → INVALID (<75%) → BREAK IMMEDIATELY")
+                break
+            }
+
+            date = date.minus(1, DateTimeUnit.DAY)
+            daysChecked++
         }
+
+        android.util.Log.d("StreakEngine", "StatsVM: FINAL STREAK for $fromDate = $streak")
         return streak
     }
 }

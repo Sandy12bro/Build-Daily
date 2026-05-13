@@ -4,15 +4,17 @@ data class UserStats(
     val totalPoints: Int = 0,
     val totalTasksCompleted: Int = 0,
     val currentStreak: Int = 0,
+    val maxStreak: Int = 0,
     val lastCompletionDate: String? = null,
     val firstStartDate: Long = System.currentTimeMillis()
 ) {
-    val daysActive: Int get() {
-        val diff = System.currentTimeMillis() - firstStartDate
-        return (diff / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(1)
-    }
+    val effectiveCurrentStreak: Int get() = currentStreak
 
-    val growthFactor: Float get() = (daysActive.toFloat() / 90f).coerceIn(0.01f, 1f)
+    // Connect the tree's growth stages directly to the real-time verified effective streak!
+    val daysActive: Int get() = effectiveCurrentStreak.coerceAtLeast(1)
+
+    // Smooth growth multiplier based on real-time streak progression
+    val growthFactor: Float get() = (effectiveCurrentStreak.toFloat() / 30f).coerceIn(0.01f, 1f)
 
     val level: Int get() = when {
         totalPoints < 50 -> 0

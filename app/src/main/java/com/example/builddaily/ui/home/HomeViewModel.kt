@@ -37,6 +37,7 @@ class HomeViewModel(
             _error.value = null
             try {
                 _tasks.value = repository.getTasksForDate(today().toString())
+                statsRepository.recalculateStreak(repository)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load tasks"
             } finally {
@@ -50,12 +51,18 @@ class HomeViewModel(
             try {
                 val newStatus = !task.isCompleted
                 repository.updateTaskCompletion(task.id, newStatus)
-                _tasks.value = _tasks.value.map {
+                
+                val updatedTasks = _tasks.value.map {
                     if (it.id == task.id) it.copy(isCompleted = newStatus) else it
                 }
+                _tasks.value = updatedTasks
+                
                 if (newStatus) {
-                    statsRepository.addPoints(10)
+                    statsRepository.awardXP(10)
                 }
+                
+                // Real-time bidirectional streak recalculation on ANY task state change
+                statsRepository.recalculateStreak(repository)
                 ActionMessageManager.postMessage(
                     if (newStatus) "Task completed! 🤩" else "Task set to incomplete",
                     if (newStatus) ActionType.COMPLETED else ActionType.INCOMPLETE
@@ -71,6 +78,7 @@ class HomeViewModel(
             try {
                 repository.deleteTask(task.id)
                 _tasks.value = _tasks.value.filter { it.id != task.id }
+                statsRepository.recalculateStreak(repository) // Recalculate streak upon deletion
                 ActionMessageManager.postMessage("Task deleted 🗑️", ActionType.DELETED)
             } catch (e: Exception) {
                 _error.value = e.message
@@ -88,6 +96,7 @@ class HomeViewModel(
                     createdAt = kotlinx.datetime.Clock.System.now().toString()
                 )
                 repository.insertTask(newTask)
+                statsRepository.recalculateStreak(repository) // Recalculate streak after repeat
                 ActionMessageManager.postMessage("Task repeated for today 🔄", ActionType.REPEATED)
                 loadTasks() // Reload to show the new duplicated task
             } catch (e: Exception) {
