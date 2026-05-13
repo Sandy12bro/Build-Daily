@@ -1,5 +1,8 @@
 package com.example.builddaily.data.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Book(
     val id: String = java.util.UUID.randomUUID().toString(),
     val title: String = "",
@@ -23,6 +26,7 @@ data class Book(
     val isFavorite: Boolean = false
 )
 
+@Serializable
 enum class BookGenre(val displayName: String, val emoji: String) {
     PRODUCTIVITY("Productivity", "🎯"),
     BUSINESS("Business", "💼"),
@@ -41,6 +45,7 @@ enum class BookGenre(val displayName: String, val emoji: String) {
     OTHER("Other", "📚")
 }
 
+@Serializable
 enum class BookPriority(val displayName: String, val level: Int, val colorHex: Long) {
     MUST_READ("Must Read", 5, 0xFFFF3B30),
     HIGH_PRIORITY("High Priority", 4, 0xFFFF9500),
@@ -49,6 +54,7 @@ enum class BookPriority(val displayName: String, val level: Int, val colorHex: L
     SOMEDAY("Someday", 1, 0xFF8E8E93)
 }
 
+@Serializable
 enum class BookStatus(val displayName: String) {
     CURRENTLY_READING("Currently Reading"),
     WANT_TO_READ("Want to Read"),

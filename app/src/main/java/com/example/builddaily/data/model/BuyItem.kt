@@ -1,5 +1,8 @@
 package com.example.builddaily.data.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class BuyItem(
     val id: String = java.util.UUID.randomUUID().toString(),
     val name: String = "",
@@ -17,6 +20,7 @@ data class BuyItem(
     val itemStatus: ItemStatus = ItemStatus.PLANNED
 )
 
+@Serializable
 enum class BuyCategory(val displayName: String, val emoji: String) {
     GADGETS("Gadgets", "📱"),
     BIKE_CAR("Bike/Car", "🏍️"),
@@ -34,6 +38,7 @@ enum class BuyCategory(val displayName: String, val emoji: String) {
     OTHER("Other", "📦")
 }
 
+@Serializable
 enum class BuyPriority(val displayName: String, val level: Int, val colorHex: Long) {
     CRITICAL("Critical", 5, 0xFFFF3B30),
     IMPORTANT("Important", 4, 0xFFFF9500),
@@ -42,6 +47,7 @@ enum class BuyPriority(val displayName: String, val level: Int, val colorHex: Lo
     SOMEDAY("Someday", 1, 0xFF8E8E93)
 }
 
+@Serializable
 enum class ItemStatus(val displayName: String) {
     PLANNED("Planned"),
     SAVING_FOR("Saving For"),
