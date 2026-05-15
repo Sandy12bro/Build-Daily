@@ -36,57 +36,36 @@
 - **Conflict Detection**: Automatic warning for overlapping tasks
 - **Drag & Drop**: Intuitive task reordering
 - **Recurring Tasks**: Set daily, weekly, or custom recurrence patterns
-- **Quick Add**: Fast task creation with smart defaults
 
-### 🔔 Intelligent Notifications
+### 🔔 Intelligent Notification System
+- **Hydration Daisy-Chain**: Smart water reminders that adapt to your intake
 - **Context-Aware Reminders**: Smart notifications based on task timing
-- **Adaptive Timing**: Learns your response patterns
-- **Quiet Hours**: Respect your sleep schedule
-- **Notification History**: Track all your notifications
-- **Custom Sounds**: Personalize notification experience
+- **Quiet Hours**: Respect your sleep schedule (10 PM - 7 AM)
+- **Notification History**: Track all your past notifications
+- **Permission Guard**: Seamless Android 13+ permission management
+
+### 💰 Buy List & Budget Manager
+- **Financial Precision**: High-accuracy `Double` based currency tracking
+- **Savings Tracker**: Log incremental savings towards specific goals
+- **Priority Logic**: Organize your wishlist by "Must Haves" vs "Wants"
+- **Affordability Forecast**: Instant calculation of days remaining to hit your goals
+
+### 📚 Book Library Vault
+- **Reading Progress**: Track pages read vs total pages with real-time percentages
+- **Dynamic Stats**: Automatically calculated "Books Read This Year" and yearly goals
+- **Favorite System**: Curate a premium vault of your top reads
+- **Archive Logic**: Keep your main library clean while preserving history
 
 ### 📊 Powerful Analytics
 - **Daily Completion Rate**: Track your daily progress
 - **Weekly Trends**: Visualize your weekly productivity
-- **Monthly Insights**: Analyze long-term patterns
 - **Category Breakdown**: See performance by task type
 - **Streak Tracking**: Build consistent habits with streaks
-- **Productivity Scores**: Get a comprehensive productivity rating
-
-### 🎯 Task Management
-- **Rich Task Details**: Title, description, time, category, priority
-- **Color-Coded Organization**: Visual task categorization
-- **Priority Levels**: Urgent, High, Medium, Low priorities
-- **Task Templates**: Save and reuse task templates
-- **Bulk Operations**: Select and manage multiple tasks
 
 ### ⏱️ Pomodoro Timer
 - **Built-in Timer**: 25/5 minute work/break cycles
-- **Session History**: Track completed Pomodoro sessions
-- **Background Service**: Timer continues when app is closed
-- **Custom Durations**: Adjust work and break times
+- **Background Service**: Timer continues even when app is closed
 - **Focus Mode**: Minimize distractions during sessions
-
-### ✅ Todo List
-- **Quick Todo Management**: Simple todo list for quick tasks
-- **Todo Reminders**: Set reminders for todos
-- **Priority Sorting**: Organize todos by priority
-- **Quick Actions**: Swipe to complete or delete
-- **Todo Scheduling**: Schedule todos for specific times
-
-### 🎨 Beautiful Design
-- **Premium Dark Theme**: Galactic dark palette with vibrant accents
-- **Smooth Animations**: Fluid transitions and micro-interactions
-- **Material Design 3**: Modern Android design language
-- **Custom Components**: Unique UI components for better UX
-- **Responsive Layout**: Adapts to different screen sizes
-
-### 🔧 Advanced Features
-- **Offline Mode**: Full functionality without internet
-- **Demo Mode**: Test the app with mock data
-- **APK Export**: Share the app with others
-- **Device-Based Identity**: No account required
-- **Automatic Sync**: Seamless data synchronization
 
 ---
 
@@ -96,115 +75,40 @@
 *Your daily command center*
 - Timeline view of today's tasks
 - Quick stats and progress indicators
-- Floating action button for quick task creation
-- Pull-to-refresh for instant updates
 
-### Task Creation
-*Effortless task management*
-- Intuitive task creation form
-- Time picker with smart suggestions
-- Category and priority selection
-- Color-coded task organization
+### Buy List & Budget
+*Strategic financial planning*
+- Item prioritization and cost tracking
+- Progress bars for savings goals
+- High-precision financial calculations
 
-### Analytics Dashboard
-*Insights that drive improvement*
-- Visual charts and graphs
-- Weekly/monthly/yearly statistics
-- Category performance breakdown
-- Streak and milestone tracking
-
-### Pomodoro Timer
-*Focus like never before*
-- Beautiful timer interface
-- Session history and statistics
-- Customizable work/break durations
-- Background notification support
-
-### Todo List
-*Quick task management*
-- Simple todo creation
-- Priority-based sorting
-- Swipe actions for quick completion
-- Reminder scheduling
-
----
-
-## 📦 Installation
-
-### Prerequisites
-- Android Studio Hedgehog (2023.1.1) or later
-- Android SDK 24 (Android 7.0) or higher
-- Kotlin 1.9.0 or higher
-- Gradle 8.0 or higher
-
-### Clone the Repository
-```bash
-git clone https://github.com/Sandy12bro/Build-Daily.git
-cd Build-Daily
-```
-
-### Open in Android Studio
-1. Open Android Studio
-2. Select "Open an Existing Project"
-3. Navigate to the cloned repository
-4. Wait for Gradle sync to complete
-
-### Configure Supabase (Optional)
-For production use with real backend:
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Update `SupabaseClient.kt` with your credentials:
-```kotlin
-private const val SUPABASE_URL = "your-supabase-url"
-private const val SUPABASE_ANON_KEY = "your-anon-key"
-```
-
-### Run the App
-1. Connect your Android device or start an emulator
-2. Click the "Run" button in Android Studio
-3. The app will install and launch automatically
-
-### APK Export
-To share the app without Play Store:
-1. Go to Build → Generate Signed Bundle/APK
-2. Select APK
-3. Create or use existing keystore
-4. Build and share the APK
+### Book Library
+*Your intellectual sanctuary*
+- Visual library layout with cover-style cards
+- Detailed progress tracking for every book
+- Yearly reading goal analytics
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **Kotlin**: Modern, concise programming language
-- **Jetpack Compose**: Declarative UI toolkit
-- **Material Design 3**: Latest Material Design components
-- **Coroutines & Flow**: Asynchronous programming
-- **ViewModel**: UI state management
-
-### Backend
-- **Supabase**: Backend-as-a-Service
-  - PostgreSQL Database
-  - Real-time Subscriptions
-  - Row-Level Security
-  - REST API
+### Frontend & UI
+- **Kotlin**: Modern, type-safe programming language
+- **Jetpack Compose**: Declarative UI toolkit for premium animations
+- **Material Design 3**: Latest design tokens and components
+- **Coroutines & StateFlow**: Reactive, thread-safe state management
 
 ### Architecture
-- **MVVM Pattern**: Clean architecture separation
-- **Repository Pattern**: Data access abstraction
-- **Dependency Injection**: Manual DI with Koin-ready structure
-- **Offline-First**: Local database with sync
+- **Advanced MVVM**: Clean separation of UI and business logic
+- **ViewModel Orchestration**: Centralized state derivation for maximum performance
+- **Repository Pattern**: Robust data access and persistence layer
+- **High-Precision Persistence**: Bit-level `Double` storage for financial data
 
 ### Libraries
-- **Supabase Kotlin Client**: Database and auth
-- **Vico Charts**: Beautiful chart visualizations
-- **AndroidX Components**: Modern Android libraries
-- **Kotlinx Serialization**: JSON parsing
-- **WorkManager**: Background task scheduling
-
-### Database
-- **Room**: Local SQLite database
-- **Supabase PostgreSQL**: Cloud database
-- **SharedPreferences**: Simple key-value storage
+- **kotlinx-datetime**: High-precision time and date management
+- **kotlinx-serialization**: Modern JSON parsing and object mapping
+- **Vico Charts**: Premium data visualizations
+- **SharedPreferences**: Encrypted-ready local storage
 
 ---
 
@@ -213,156 +117,32 @@ To share the app without Play Store:
 ```
 app/
 ├── data/
-│   ├── model/              # Data models (Task, Todo, Pomodoro)
-│   ├── repository/         # Data access layer
-│   ├── network/            # Supabase client
-│   └── local/              # Local database
+│   ├── model/              # Data models (Task, Book, BuyItem, Hydration)
+│   ├── repository/         # Data access layer with precision persistence
+│   └── local/              # Local storage management
 ├── ui/
 │   ├── home/               # Home screen
-│   ├── addtask/            # Task creation
-│   ├── history/            # Task history
-│   ├── stats/              # Analytics
-│   ├── profile/            # Settings
-│   ├── pomodoro/           # Pomodoro timer
-│   ├── todo/               # Todo list
-│   ├── splash/             # Splash screen
-│   └── components/         # Reusable UI components
-├── util/                   # Utility classes
-├── service/                # Background services
-└── BuildDailyApp.kt        # Application class
+│   ├── buylist/            # Wishlist & Budget Manager
+│   ├── booklibrary/        # Smart Reading Vault
+│   ├── hydration/          # Daisy-chain hydration module
+│   ├── stats/              # Advanced Analytics
+│   ├── pomodoro/           # Pomodoro focus timer
+│   └── components/         # Reusable premium UI components
+├── util/                   # Utility classes (Schedulers, Formatters)
+└── BuildDailyApp.kt        # Application navigation & dependency hub
 ```
-
----
-
-## 🚀 Usage
-
-### First Launch
-1. **Welcome Screen**: Brief app introduction
-2. **Permission Request**: Grant notification permissions
-3. **Create First Task**: Start by adding your first task
-4. **Explore Features**: Navigate through different screens
-
-### Daily Workflow
-1. **Morning**: Review today's tasks and schedule
-2. **Throughout Day**: Complete tasks and track progress
-3. **Evening**: Review analytics and plan tomorrow
-4. **Weekly**: Analyze weekly trends and adjust strategy
-
-### Tips for Maximum Productivity
-- **Schedule Important Tasks First**: During your peak productivity hours
-- **Use Time Blocking**: Group similar tasks together
-- **Set Realistic Time Estimates**: Based on historical data
-- **Take Breaks**: Use Pomodoro timer for focused work sessions
-- **Review Analytics**: Learn from your productivity patterns
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
-
-### Reporting Bugs
-- Use the [Issues](https://github.com/Sandy12bro/Build-Daily/issues) tab
-- Provide detailed steps to reproduce
-- Include device information and Android version
-- Add screenshots if applicable
-
-### Suggesting Features
-- Check existing issues first
-- Provide clear use cases
-- Explain the benefit to users
-- Consider implementation complexity
-
-### Pull Requests
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Style
-- Follow Kotlin coding conventions
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Keep functions focused and small
-- Write tests for new features
+We welcome contributions! Please follow the Kotlin coding conventions and ensure all new features are implemented using the established **MVVM** pattern with proper **StateFlow** exposure.
 
 ---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2024 Build Daily
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
-
-## 🙏 Acknowledgments
-
-- **Supabase** for providing the excellent backend infrastructure
-- **Jetpack Compose** team for the amazing UI toolkit
-- **Material Design** team for the design guidelines
-- **Android Community** for the valuable resources and support
-
----
-
-## 📞 Support
-
-- **GitHub Issues**: [Report bugs](https://github.com/Sandy12bro/Build-Daily/issues)
-- **Discussions**: [Join discussions](https://github.com/Sandy12bro/Build-Daily/discussions)
-- **Email**: [Contact support](mailto:support@builddaily.app)
-
----
-
-## 🔮 Roadmap
-
-### Current Version (v1.0)
-- ✅ Time-based task scheduling
-- ✅ Basic notifications
-- ✅ Analytics dashboard
-- ✅ Pomodoro timer
-- ✅ Todo list
-- ✅ Offline mode
-
-### Upcoming Features
-- 🚧 Calendar integration (Google, Apple)
-- 🚧 AI-powered scheduling suggestions
-- 🚧 Voice input (natural language)
-- 🚧 Advanced analytics with predictions
-- 🚧 Team collaboration features
-- 🚧 Widgets for home screen
-- 🚧 Cross-platform sync (iOS, Web)
-- 🚧 Custom themes and icons
-
-### Future Enhancements
-- 🔮 Habit tracking system
-- 🔮 Goal setting and tracking
-- 🔮 Gamification and achievements
-- 🔮 Social features and sharing
-- 🔮 Enterprise features
-- 🔮 AI productivity coach
 
 ---
 
