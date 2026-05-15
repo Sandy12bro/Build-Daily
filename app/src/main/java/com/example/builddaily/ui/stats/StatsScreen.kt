@@ -1,5 +1,7 @@
 package com.example.builddaily.ui.stats
 
+import com.example.builddaily.ui.components.AppTitleWithLogo
+
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -129,22 +132,22 @@ fun StatsScreen(
                 )
             }
         ) { padding ->
-            BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
-                val isWide = maxWidth > 600.dp
-                val contentPadding = if (isWide) 32.dp else 16.dp
-                val chartHeight = if (isWide) 400.dp else 260.dp
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
+            val isWide = maxWidth > 600.dp
+            val contentPadding = if (isWide) 32.dp else 16.dp
+            val chartHeight = if (isWide) 400.dp else 260.dp
 
-                if (isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = ElectricBlue)
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(contentPadding)
-                    ) {
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ElectricBlue)
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(contentPadding)
+                ) {
                         // Period Selector
                         SingleChoiceSegmentedButtonRow(
                             modifier = Modifier.fillMaxWidth().height(if (isWide) 48.dp else 40.dp)
