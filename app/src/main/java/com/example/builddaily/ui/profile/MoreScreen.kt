@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Shield
 
 /**
  * Main "More" screen providing access to various utility modules and settings.
@@ -61,6 +62,7 @@ fun MoreScreen(
     onNavigateToHydration: () -> Unit,
     onNavigateToBuyList: () -> Unit,
     onNavigateToBookLibrary: () -> Unit,
+    onNavigateToSecurity: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -83,7 +85,7 @@ fun MoreScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MoreOption(
-                Icons.Default.Star, // Using Star for special evolution
+                Icons.Default.Star, 
                 "Grow Your Life", 
                 "Watch your personal plant evolve"
             ) {
@@ -104,6 +106,14 @@ fun MoreScreen(
                 "Focus with the galactic timer"
             ) {
                 onNavigateToPomodoro()
+            }
+
+            MoreOption(
+                Icons.Default.Shield,
+                "Security & App Lock",
+                "PIN, Pattern & Biometric safety"
+            ) {
+                onNavigateToSecurity()
             }
 
             MoreOption(

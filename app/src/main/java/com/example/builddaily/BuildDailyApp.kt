@@ -47,9 +47,13 @@ import com.example.builddaily.data.repository.BookRepository
 import com.example.builddaily.ui.buylist.BuyListViewModel
 import com.example.builddaily.ui.booklibrary.BookLibraryViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.builddaily.data.security.SecurityRepository
+import com.example.builddaily.ui.security.SecurityViewModel
+import com.example.builddaily.ui.security.SecurityLockScreen
+import com.example.builddaily.ui.security.SecuritySettingsScreen
 
 @Composable
-fun BuildDailyApp() {
+fun BuildDailyApp(securityRepository: SecurityRepository) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -65,6 +69,7 @@ fun BuildDailyApp() {
     // Initialize ViewModels
     val buyListViewModel = remember { BuyListViewModel(buyListRepository) }
     val bookLibraryViewModel = remember { BookLibraryViewModel(bookRepository) }
+    val securityViewModel = remember { SecurityViewModel(securityRepository) }
 
     // Shared Pomodoro ViewModel to persist across navigation
     val pomodoroViewModel: PomodoroViewModel = remember { PomodoroViewModel(pomodoroRepo) }
@@ -72,7 +77,7 @@ fun BuildDailyApp() {
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             bottomBar = {
-                if (currentRoute != "splash" && currentRoute != "add_task" && currentRoute?.startsWith("edit_task") != true) {
+                if (currentRoute != "splash" && currentRoute != "security_lock" && currentRoute != "add_task" && currentRoute?.startsWith("edit_task") != true) {
                     BottomNavBar(
                         currentRoute = currentRoute,
                         onItemSelected = { item ->
@@ -91,7 +96,7 @@ fun BuildDailyApp() {
                 startDestination = "splash",
                 modifier = Modifier.padding(innerPadding),
                 enterTransition = {
-                    if (initialState.destination.route == "splash") {
+                    if (initialState.destination.route == "splash" || initialState.destination.route == "security_lock") {
                         fadeIn(animationSpec = tween(400))
                     } else {
                         slideInHorizontally(
@@ -101,7 +106,7 @@ fun BuildDailyApp() {
                     }
                 },
                 exitTransition = {
-                    if (initialState.destination.route == "splash") {
+                    if (initialState.destination.route == "splash" || initialState.destination.route == "security_lock") {
                         fadeOut(animationSpec = tween(400))
                     } else {
                         slideOutHorizontally(
@@ -125,10 +130,33 @@ fun BuildDailyApp() {
             ) {
                 composable("splash") {
                     SplashScreen(onAnimationFinished = {
-                        navController.navigate("home") {
-                            popUpTo(0) { inclusive = true }
+                        if (securityRepository.isAppLocked()) {
+                            navController.navigate("security_lock") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        } else {
+                            navController.navigate("home") {
+                                popUpTo("splash") { inclusive = true }
+                            }
                         }
                     })
+                }
+                composable("security_lock") {
+                    SecurityLockScreen(
+                        viewModel = securityViewModel,
+                        onAuthenticated = {
+                            navController.navigate("home") {
+                                popUpTo("security_lock") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                composable("security_settings") {
+                    SecuritySettingsScreen(
+                        viewModel = securityViewModel,
+                        repository = securityRepository,
+                        onBack = { navController.popBackStack() }
+                    )
                 }
                 composable("home") {
                     HomeScreen(
@@ -174,7 +202,8 @@ fun BuildDailyApp() {
                         onNavigateToEvolution = { navController.navigate("evolution") },
                         onNavigateToHydration = { navController.navigate("hydration") },
                         onNavigateToBuyList = { navController.navigate("buy_list") },
-                        onNavigateToBookLibrary = { navController.navigate("book_library") }
+                        onNavigateToBookLibrary = { navController.navigate("book_library") },
+                        onNavigateToSecurity = { navController.navigate("security_settings") }
                     )
                 }
                 composable("evolution") {

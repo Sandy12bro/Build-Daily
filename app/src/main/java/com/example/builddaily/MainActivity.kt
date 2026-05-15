@@ -12,13 +12,21 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 
-class MainActivity : ComponentActivity() {
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
+import android.view.WindowManager
+import com.example.builddaily.data.security.SecurityRepository
+
+class MainActivity : FragmentActivity() {
+
+    private lateinit var securityRepository: SecurityRepository
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            // Permission granted, kickstart critical systems
             com.example.builddaily.util.HydrationScheduler.kickstart(this)
         }
     }
@@ -26,19 +34,38 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Request notification permission for Android 13+
+        securityRepository = SecurityRepository(this)
+
+        // Observe App Lifecycle for Auto-Lock
+        ProcessLifecycleOwner.get().lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                // Check if app needs locking when returning to foreground
+                applySecurityFlags()
+            }
+        })
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            // Android 12 and below: permissions are granted at install
             com.example.builddaily.util.HydrationScheduler.kickstart(this)
         }
 
         enableEdgeToEdge()
+        applySecurityFlags()
+
         setContent {
             BuildDailyTheme {
-                BuildDailyApp()
+                BuildDailyApp(securityRepository)
             }
+        }
+    }
+
+    private fun applySecurityFlags() {
+        val settings = securityRepository.settings.value
+        if (settings.isEnabled && settings.isScreenshotBlockingEnabled) {
+            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 }
