@@ -52,6 +52,8 @@ class HydrationViewModel(
     fun updateConfig(newConfig: HydrationGoalConfig) {
         repository.saveConfig(newConfig)
         refreshState()
+        // Reset/Update background reminders instantly
+        com.example.builddaily.util.HydrationScheduler.scheduleNext(repository.context, newConfig)
     }
 
     fun addWaterIntake(amountMl: Int) {
@@ -61,6 +63,9 @@ class HydrationViewModel(
             dateStr = todayStr,
             drinkType = "Water"
         )
+        
+        // Reset next reminder timer since user just drank
+        com.example.builddaily.util.HydrationScheduler.scheduleNext(repository.context, _config.value)
         
         val previouslyConsumed = _consumedTodayMl.value
         val goal = _config.value.calculatedGoalMl

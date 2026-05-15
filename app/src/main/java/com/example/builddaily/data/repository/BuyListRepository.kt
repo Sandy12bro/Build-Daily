@@ -33,19 +33,19 @@ class BuyListRepository(context: Context) {
 
     private fun loadBudget(): BudgetData {
         return BudgetData(
-            monthlyBudget = prefs.getFloat("monthly_budget", 500f).toDouble(),
-            savingsGoal = prefs.getFloat("savings_goal", 200f).toDouble(),
-            currentSavings = prefs.getFloat("current_savings", 0f).toDouble(),
-            essentialReserve = prefs.getFloat("essential_reserve", 1000f).toDouble()
+            monthlyBudget = Double.fromBits(prefs.getLong("monthly_budget", 500.0.toRawBits())),
+            savingsGoal = Double.fromBits(prefs.getLong("savings_goal", 200.0.toRawBits())),
+            currentSavings = Double.fromBits(prefs.getLong("current_savings", 0.0.toRawBits())),
+            essentialReserve = Double.fromBits(prefs.getLong("essential_reserve", 1000.0.toRawBits()))
         )
     }
 
     private fun saveBudget(budget: BudgetData) {
         prefs.edit()
-            .putFloat("monthly_budget", budget.monthlyBudget.toFloat())
-            .putFloat("savings_goal", budget.savingsGoal.toFloat())
-            .putFloat("current_savings", budget.currentSavings.toFloat())
-            .putFloat("essential_reserve", budget.essentialReserve.toFloat())
+            .putLong("monthly_budget", budget.monthlyBudget.toRawBits())
+            .putLong("savings_goal", budget.savingsGoal.toRawBits())
+            .putLong("current_savings", budget.currentSavings.toRawBits())
+            .putLong("essential_reserve", budget.essentialReserve.toRawBits())
             .apply()
         _budget.value = budget
     }

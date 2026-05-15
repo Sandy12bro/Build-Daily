@@ -233,27 +233,23 @@ class StatsViewModel(private val repository: TaskRepository) : ViewModel() {
 
         while (daysChecked < 365) {
             val dateStr = date.toString()
-            val dayTasks = tasksByDate[dateStr]
-
-            android.util.Log.d("StreakEngine", "  [Day $daysChecked] Checking $dateStr")
-
-            if (dayTasks == null || dayTasks.isEmpty()) {
-                android.util.Log.d("StreakEngine", "    → NO TASKS → BREAK IMMEDIATELY (streak reset)")
-                break
-            }
+            val dayTasks = tasksByDate[dateStr] ?: emptyList()
 
             val completed = dayTasks.count { it.isCompleted }
             val total = dayTasks.size
             val completionRate = if (total > 0) completed.toFloat() / total else 0f
 
-            android.util.Log.d("StreakEngine", "    → Tasks: $completed/$total (${(completionRate*100).toInt()}%)")
-
             if (completionRate >= 0.75f) {
                 streak++
-                android.util.Log.d("StreakEngine", "    → VALID (>=75%) → streak = $streak")
             } else {
-                android.util.Log.d("StreakEngine", "    → INVALID (<75%) → BREAK IMMEDIATELY")
-                break
+                // If today is not yet complete (or has no tasks), don't break the streak yet.
+                // A streak is only officially broken if YESTERDAY or any previous day was missed.
+                if (date == today()) {
+                    android.util.Log.d("StreakEngine", "    → Today ($dateStr) not yet complete, continuing to check yesterday...")
+                } else {
+                    android.util.Log.d("StreakEngine", "    → Missed goal on $dateStr (rate: ${(completionRate*100).toInt()}%) → BREAK LOOP")
+                    break
+                }
             }
 
             date = date.minus(1, DateTimeUnit.DAY)

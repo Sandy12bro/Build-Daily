@@ -107,23 +107,26 @@ import com.example.builddaily.util.AnimatedPercentage
 @Composable
 fun BuyListScreen(
     onBack: () -> Unit,
-    repository: BuyListRepository
+    viewModel: BuyListViewModel
 ) {
-    val items by repository.items.collectAsState()
-    val budget by repository.budget.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var selectedItem by remember { mutableStateOf<BuyItem?>(null) }
-    var showBudgetDialog by remember { mutableStateOf(false) }
-
-    val activeItems = items.filter { !it.isPurchased }.sortedByDescending { it.priority.level }
-    val purchasedItems = items.filter { it.isPurchased }
-    val totalWishlistValue = activeItems.sumOf { it.price }
-    val totalSaved = activeItems.sumOf { it.amountSaved }
-    val purchasedValue = purchasedItems.sumOf { it.price }
+    val items by viewModel.items.collectAsState()
+    val budget by viewModel.budget.collectAsState()
+    val selectedTab by viewModel.selectedTab.collectAsState()
+    
+    val activeItems by viewModel.activeItems.collectAsState()
+    val purchasedItems by viewModel.purchasedItems.collectAsState()
+    val filteredItems by viewModel.filteredItems.collectAsState()
+    
+    val totalWishlistValue by viewModel.totalWishlistValue.collectAsState(0.0)
+    val totalSaved by viewModel.totalSaved.collectAsState(0.0)
+    val purchasedValue by viewModel.purchasedValue.collectAsState(0.0)
 
     val affordableCount = activeItems.count { it.price <= budget.currentSavings }
     val canAffordItems = activeItems.filter { it.price <= budget.currentSavings }
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var selectedItem by remember { mutableStateOf<BuyItem?>(null) }
+    var showBudgetDialog by remember { mutableStateOf(false) }
 
     val motivationalMessages = listOf(
         "Your future setup starts here ✨",
@@ -226,17 +229,17 @@ fun BuyListScreen(
                     ) {
                         Tab(
                             selected = selectedTab == 0,
-                            onClick = { selectedTab = 0 },
+                            onClick = { viewModel.setTab(0) },
                             text = { Text("All (${activeItems.size})", color = if (selectedTab == 0) ElectricBlue else Color.White.copy(alpha = 0.6f)) }
                         )
                         Tab(
                             selected = selectedTab == 1,
-                            onClick = { selectedTab = 1 },
+                            onClick = { viewModel.setTab(1) },
                             text = { Text("Can Afford (${canAffordItems.size})", color = if (selectedTab == 1) MintGreen else Color.White.copy(alpha = 0.6f)) }
                         )
                         Tab(
                             selected = selectedTab == 2,
-                            onClick = { selectedTab = 2 },
+                            onClick = { viewModel.setTab(2) },
                             text = { Text("Saving (${activeItems.count { it.itemStatus == ItemStatus.SAVING_FOR }})", color = if (selectedTab == 2) SolarYellow else Color.White.copy(alpha = 0.6f)) }
                         )
                     }
@@ -264,9 +267,9 @@ fun BuyListScreen(
                         item = item,
                         budget = budget,
                         onClick = { selectedItem = item },
-                        onPurchase = { repository.markAsPurchased(item.id) },
-                        onDelete = { repository.deleteItem(item.id) },
-                        onUpdateSaved = { newAmount -> repository.updateItem(item.copy(amountSaved = newAmount)) }
+                        onPurchase = { viewModel.markAsPurchased(item.id) },
+                        onDelete = { viewModel.deleteItem(item.id) },
+                        onUpdateSaved = { newAmount -> viewModel.updateItem(item.copy(amountSaved = newAmount)) }
                     )
                 }
             }
@@ -278,7 +281,7 @@ fun BuyListScreen(
                 }
 
                 items(purchasedItems.take(10), key = { "purchased_${it.id}" }) { item ->
-                    PremiumPurchasedItemCard(item = item, onDelete = { repository.deleteItem(item.id) })
+                    PremiumPurchasedItemCard(item = item, onDelete = { viewModel.deleteItem(item.id) })
                 }
             }
 
@@ -290,7 +293,7 @@ fun BuyListScreen(
         PremiumAddBuyItemDialog(
             onDismiss = { showAddDialog = false },
             onAdd = { item ->
-                repository.addItem(item)
+                viewModel.addItem(item)
                 showAddDialog = false
             }
         )
@@ -301,7 +304,7 @@ fun BuyListScreen(
             budget = budget,
             onDismiss = { showBudgetDialog = false },
             onSave = { newBudget ->
-                repository.updateBudget(newBudget)
+                viewModel.updateBudget(newBudget)
                 showBudgetDialog = false
             }
         )
@@ -312,9 +315,9 @@ fun BuyListScreen(
             item = item,
             budget = budget,
             onDismiss = { selectedItem = null },
-            onPurchase = { repository.markAsPurchased(item.id) },
-            onDelete = { repository.deleteItem(item.id); selectedItem = null },
-            onUpdateSaved = { newAmount -> repository.updateItem(item.copy(amountSaved = newAmount)); selectedItem = item.copy(amountSaved = newAmount) }
+            onPurchase = { viewModel.markAsPurchased(item.id) },
+            onDelete = { viewModel.deleteItem(item.id); selectedItem = null },
+            onUpdateSaved = { newAmount -> viewModel.updateItem(item.copy(amountSaved = newAmount)); selectedItem = item.copy(amountSaved = newAmount) }
         )
     }
 }

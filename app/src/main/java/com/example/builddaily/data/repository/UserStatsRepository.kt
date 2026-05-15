@@ -157,27 +157,23 @@ class UserStatsRepository(private val context: Context) {
 
             while (daysChecked < 365) {
                 val dateStr = currentBackDate.toString()
-                val dayTasks = tasksByDate[dateStr]
-
-                android.util.Log.d("StreakEngine", "  Checking day $daysChecked: $dateStr")
-
-                if (dayTasks == null || dayTasks.isEmpty()) {
-                    android.util.Log.d("StreakEngine", "    → NO TASKS for $dateStr → BREAK LOOP IMMEDIATELY")
-                    break
-                }
+                val dayTasks = tasksByDate[dateStr] ?: emptyList()
 
                 val completed = dayTasks.count { it.isCompleted }
                 val total = dayTasks.size
                 val percentage = if (total > 0) completed.toFloat() / total else 0f
 
-                android.util.Log.d("StreakEngine", "    → Tasks: $completed/$total (${(percentage*100).toInt()}%)")
-
                 if (percentage >= 0.75f) {
                     calculatedCurrentStreak++
-                    android.util.Log.d("StreakEngine", "    → VALID (>=75%) → INCREMENT streak to $calculatedCurrentStreak")
                 } else {
-                    android.util.Log.d("StreakEngine", "    → INVALID (<75%) → BREAK LOOP IMMEDIATELY")
-                    break
+                    // If today is not yet complete (or has no tasks), don't break the streak yet.
+                    // A streak is only officially broken if YESTERDAY or any previous day was missed.
+                    if (currentBackDate == todayDate) {
+                        android.util.Log.d("StreakEngine", "    → Today ($dateStr) not yet complete (rate: ${(percentage*100).toInt()}%), continuing to check yesterday...")
+                    } else {
+                        android.util.Log.d("StreakEngine", "    → Missed goal on $dateStr (rate: ${(percentage*100).toInt()}%) → BREAK LOOP")
+                        break
+                    }
                 }
 
                 currentBackDate = currentBackDate.minus(1, kotlinx.datetime.DateTimeUnit.DAY)

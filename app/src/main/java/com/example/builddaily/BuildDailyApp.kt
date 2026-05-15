@@ -33,9 +33,19 @@ import com.example.builddaily.ui.splash.SplashScreen
 import com.example.builddaily.ui.stats.StatsScreen
 import com.example.builddaily.ui.pomodoro.PomodoroScreen
 import com.example.builddaily.ui.pomodoro.PomodoroViewModel
-import com.example.builddaily.data.repository.PomodoroRepository
+import com.example.builddaily.ui.pomodoro.PomodoroHistoryScreen
+import com.example.builddaily.ui.profile.LifeArchitectureScreen
+import com.example.builddaily.ui.todo.TodoListScreen
+import com.example.builddaily.ui.todo.AddTodoScreen
+import com.example.builddaily.ui.hydration.HydrationScreen
 import com.example.builddaily.ui.buylist.BuyListScreen
 import com.example.builddaily.ui.booklibrary.BookLibraryScreen
+import com.example.builddaily.data.repository.PomodoroRepository
+import com.example.builddaily.data.repository.UserStatsRepository
+import com.example.builddaily.data.repository.BuyListRepository
+import com.example.builddaily.data.repository.BookRepository
+import com.example.builddaily.ui.buylist.BuyListViewModel
+import com.example.builddaily.ui.booklibrary.BookLibraryViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
@@ -47,10 +57,14 @@ fun BuildDailyApp() {
     val context = LocalContext.current
     val deviceId = DeviceIdManager.getDeviceId(context)
     val repository = remember(deviceId) { TaskRepository(context, deviceId) }
-val pomodoroRepo = remember { PomodoroRepository(context) }
-    val statsRepository = remember { com.example.builddaily.data.repository.UserStatsRepository(context) }
-    val buyListRepository = remember { com.example.builddaily.data.repository.BuyListRepository(context) }
-    val bookRepository = remember { com.example.builddaily.data.repository.BookRepository(context) }
+    val pomodoroRepo = remember { PomodoroRepository(context) }
+    val statsRepository = remember { UserStatsRepository(context) }
+    val buyListRepository = remember { BuyListRepository(context) }
+    val bookRepository = remember { BookRepository(context) }
+
+    // Initialize ViewModels
+    val buyListViewModel = remember { BuyListViewModel(buyListRepository) }
+    val bookLibraryViewModel = remember { BookLibraryViewModel(bookRepository) }
 
     // Shared Pomodoro ViewModel to persist across navigation
     val pomodoroViewModel: PomodoroViewModel = remember { PomodoroViewModel(pomodoroRepo) }
@@ -153,7 +167,7 @@ val pomodoroRepo = remember { PomodoroRepository(context) }
                     StatsScreen(repository = repository, statsRepository = statsRepository)
                 }
                 composable("more") {
-                    com.example.builddaily.ui.profile.MoreScreen(
+                    MoreScreen(
                         onNavigateToNotifications = { navController.navigate("notification_settings") },
                         onNavigateToPomodoro = { navController.navigate("pomodoro") },
                         onNavigateToTodoList = { navController.navigate("to_do_list") },
@@ -164,7 +178,7 @@ val pomodoroRepo = remember { PomodoroRepository(context) }
                     )
                 }
                 composable("evolution") {
-                    com.example.builddaily.ui.profile.LifeArchitectureScreen(
+                    LifeArchitectureScreen(
                         statsRepository = statsRepository,
                         onBack = { navController.popBackStack() }
                     )
@@ -180,26 +194,26 @@ val pomodoroRepo = remember { PomodoroRepository(context) }
                     )
                 }
                 composable("pomodoro_history") {
-                    com.example.builddaily.ui.pomodoro.PomodoroHistoryScreen(
+                    PomodoroHistoryScreen(
                         onBack = { navController.popBackStack() },
                         viewModel = pomodoroViewModel
                     )
                 }
                 composable("to_do_list") {
-                    com.example.builddaily.ui.todo.TodoListScreen(
+                    TodoListScreen(
                         onBack = { navController.popBackStack() },
                         onNavigateToAddTodo = { navController.navigate("add_todo") },
                         statsRepository = statsRepository
                     )
                 }
                 composable("add_todo") {
-                    com.example.builddaily.ui.todo.AddTodoScreen(
+                    AddTodoScreen(
                         onBack = { navController.popBackStack() },
                         statsRepository = statsRepository
                     )
                 }
                 composable("hydration") {
-                    com.example.builddaily.ui.hydration.HydrationScreen(
+                    HydrationScreen(
                         onBack = { navController.popBackStack() },
                         statsRepository = statsRepository
                     )
@@ -207,13 +221,13 @@ val pomodoroRepo = remember { PomodoroRepository(context) }
                 composable("buy_list") {
                     BuyListScreen(
                         onBack = { navController.popBackStack() },
-                        repository = buyListRepository
+                        viewModel = buyListViewModel
                     )
                 }
                 composable("book_library") {
                     BookLibraryScreen(
                         onBack = { navController.popBackStack() },
-                        repository = bookRepository
+                        viewModel = bookLibraryViewModel
                     )
                 }
             }

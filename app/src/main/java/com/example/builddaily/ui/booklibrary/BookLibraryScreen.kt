@@ -107,24 +107,26 @@ import com.example.builddaily.util.CurrencyUtils
 @Composable
 fun BookLibraryScreen(
     onBack: () -> Unit,
-    repository: BookRepository
+    viewModel: BookLibraryViewModel
 ) {
-    val books by repository.books.collectAsState()
-    val readingGoal by repository.readingGoal.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
+    val books by viewModel.books.collectAsState()
+    val readingGoal by viewModel.readingGoal.collectAsState()
+    val selectedTab by viewModel.selectedTab.collectAsState()
+    
+    val currentlyReading by viewModel.currentlyReading.collectAsState()
+    val wantToRead by viewModel.wantToRead.collectAsState()
+    val completed by viewModel.completed.collectAsState()
+    val favorites by viewModel.favorites.collectAsState()
+    val archived by viewModel.archived.collectAsState()
+    val displayedBooks by viewModel.displayedBooks.collectAsState()
+
+    val totalPagesRead by viewModel.totalPagesRead.collectAsState(0)
+    val completedCount by viewModel.completedCount.collectAsState(0)
+    val totalBooks by viewModel.totalBooks.collectAsState(0)
+
     var showAddBookDialog by remember { mutableStateOf(false) }
     var showGoalDialog by remember { mutableStateOf(false) }
     var selectedBook by remember { mutableStateOf<Book?>(null) }
-
-    val currentlyReading = books.filter { it.status == BookStatus.CURRENTLY_READING }
-    val wantToRead = books.filter { it.status == BookStatus.WANT_TO_READ }.sortedByDescending { it.priority.level }
-    val completed = books.filter { it.status == BookStatus.COMPLETED }
-    val archived = books.filter { it.status == BookStatus.ARCHIVED }
-    val favorites = books.filter { it.isFavorite }
-
-    val totalPagesRead = books.sumOf { it.pagesRead }
-    val completedCount = books.count { it.status == BookStatus.COMPLETED }
-    val totalBooks = books.size
 
     val motivationalQuotes = listOf(
         "Reading is dreaming with open eyes 📚",
@@ -208,10 +210,10 @@ fun BookLibraryScreen(
                         )
                     }
                 ) {
-                    Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Reading (${currentlyReading.size})", color = if (selectedTab == 0) CyberPurple else Color.White.copy(alpha = 0.6f)) })
-                    Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Want (${wantToRead.size})", color = if (selectedTab == 1) ElectricBlue else Color.White.copy(alpha = 0.6f)) })
-                    Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("Done (${completed.size})", color = if (selectedTab == 2) MintGreen else Color.White.copy(alpha = 0.6f)) })
-                    Tab(selected = selectedTab == 3, onClick = { selectedTab = 3 }, text = { Text("Fav (${favorites.size})", color = if (selectedTab == 3) SolarYellow else Color.White.copy(alpha = 0.6f)) })
+                    Tab(selected = selectedTab == 0, onClick = { viewModel.setTab(0) }, text = { Text("Reading (${currentlyReading.size})", color = if (selectedTab == 0) CyberPurple else Color.White.copy(alpha = 0.6f)) })
+                    Tab(selected = selectedTab == 1, onClick = { viewModel.setTab(1) }, text = { Text("Want (${wantToRead.size})", color = if (selectedTab == 1) ElectricBlue else Color.White.copy(alpha = 0.6f)) })
+                    Tab(selected = selectedTab == 2, onClick = { viewModel.setTab(2) }, text = { Text("Done (${completed.size})", color = if (selectedTab == 2) MintGreen else Color.White.copy(alpha = 0.6f)) })
+                    Tab(selected = selectedTab == 3, onClick = { viewModel.setTab(3) }, text = { Text("Fav (${favorites.size})", color = if (selectedTab == 3) SolarYellow else Color.White.copy(alpha = 0.6f)) })
                 }
             }
 
@@ -233,9 +235,9 @@ fun BookLibraryScreen(
                         book = book,
                         readingGoal = readingGoal,
                         onClick = { selectedBook = book },
-                        onToggleFavorite = { repository.updateBook(book.copy(isFavorite = !book.isFavorite)) },
-                        onDelete = { repository.deleteBook(book.id) },
-                        onUpdateProgress = { pages -> repository.updateBook(book.copy(pagesRead = pages)) }
+                        onToggleFavorite = { viewModel.updateBook(book.copy(isFavorite = !book.isFavorite)) },
+                        onDelete = { viewModel.deleteBook(book.id) },
+                        onUpdateProgress = { pages -> viewModel.updateProgress(book, pages) }
                     )
                 }
             }
@@ -245,7 +247,7 @@ fun BookLibraryScreen(
                     Text("Archived (${archived.size})", color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
                 }
                 items(archived.take(3), key = { "archived_${it.id}" }) { book ->
-                    CompactArchivedBookCard(book = book, onRestore = { repository.updateBook(book.copy(status = BookStatus.WANT_TO_READ)) })
+                    CompactArchivedBookCard(book = book, onRestore = { viewModel.updateBook(book.copy(status = BookStatus.WANT_TO_READ)) })
                 }
             }
 
@@ -257,7 +259,7 @@ fun BookLibraryScreen(
         PremiumAddBookDialog(
             onDismiss = { showAddBookDialog = false },
             onAdd = { book ->
-                repository.addBook(book)
+                viewModel.addBook(book)
                 showAddBookDialog = false
             }
         )
@@ -268,7 +270,7 @@ fun BookLibraryScreen(
             currentGoal = readingGoal,
             onDismiss = { showGoalDialog = false },
             onSave = { goal ->
-                repository.updateReadingGoal(goal)
+                viewModel.updateReadingGoal(goal)
                 showGoalDialog = false
             }
         )
@@ -279,10 +281,10 @@ fun BookLibraryScreen(
             book = book,
             onDismiss = { selectedBook = null },
             onUpdate = { updatedBook ->
-                repository.updateBook(updatedBook)
+                viewModel.updateBook(updatedBook)
                 selectedBook = updatedBook
             },
-            onDelete = { repository.deleteBook(book.id); selectedBook = null }
+            onDelete = { viewModel.deleteBook(book.id); selectedBook = null }
         )
     }
 }

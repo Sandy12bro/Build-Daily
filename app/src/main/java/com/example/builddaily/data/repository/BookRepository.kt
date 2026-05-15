@@ -104,9 +104,14 @@ class BookRepository(context: Context) {
         .filter { it.status == BookStatus.COMPLETED }
         .sortedByDescending { it.completedDate }
 
-    fun getTotalPagesRead(): Int = _books.value.sumOf { it.pagesRead }
-
     fun getTotalBooksCompleted(): Int = _books.value.count { it.status == BookStatus.COMPLETED }
+    
+    fun getBooksReadThisYear(): Int {
+        val currentYear = kotlinx.datetime.Clock.System.now().toString().substring(0, 4)
+        return _books.value.count { 
+            it.status == BookStatus.COMPLETED && (it.completedDate?.startsWith(currentYear) == true)
+        }
+    }
 }
 
 data class ReadingGoal(

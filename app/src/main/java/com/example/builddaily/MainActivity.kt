@@ -16,11 +16,24 @@ class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { _ -> }
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, kickstart critical systems
+            com.example.builddaily.util.HydrationScheduler.kickstart(this)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Request notification permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            // Android 12 and below: permissions are granted at install
+            com.example.builddaily.util.HydrationScheduler.kickstart(this)
+        }
+
         enableEdgeToEdge()
         setContent {
             BuildDailyTheme {

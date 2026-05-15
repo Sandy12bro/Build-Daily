@@ -500,11 +500,41 @@ fun SmartNotificationsPanel(config: HydrationGoalConfig, onUpdateConfig: (Hydrat
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.04f)),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
     ) {
+        val context = LocalContext.current
         Column(modifier = Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Notifications, contentDescription = null, tint = Color(0xFF06B6D4), modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(10.dp))
-                Text("Intelligent Reminders", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            val nextAlarm = remember(config) { com.example.builddaily.util.HydrationScheduler.getNextAlarmTime(context) }
+            val nextAlarmStr = remember(nextAlarm) {
+                if (nextAlarm == 0L) "Not scheduled"
+                else {
+                    val cal = Calendar.getInstance().apply { timeInMillis = nextAlarm }
+                    SimpleDateFormat("hh:mm a", Locale.getDefault()).format(cal.time)
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Color(0xFF06B6D4), modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Intelligent Reminders", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF06B6D4).copy(alpha = 0.1f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "Next: $nextAlarmStr",
+                        color = Color(0xFF06B6D4),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -552,7 +582,8 @@ fun SmartNotificationsPanel(config: HydrationGoalConfig, onUpdateConfig: (Hydrat
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Simulated Notification testing trigger
+            // Real Notification testing trigger
+            val testContext = LocalContext.current
             Button(
                 onClick = {
                     val messages = listOf(
@@ -561,13 +592,18 @@ fun SmartNotificationsPanel(config: HydrationGoalConfig, onUpdateConfig: (Hydrat
                         "Hydration improves brain memory and speed ✨",
                         "Stay refreshed. Build your life architecture fully."
                     )
-                    ActionMessageManager.postMessage(messages.random(), ActionType.COMPLETED)
+                    val msg = messages.random()
+                    // 1. Show UI toast
+                    ActionMessageManager.postMessage("Firing test notification...", ActionType.ADDED)
+                    // 2. Fire real system notification
+                    val helper = com.example.builddaily.util.NotificationHelper(testContext)
+                    helper.showNotification("Hydration Mission", msg)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Test Adaptive Notification", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                Text("Test System Notification", color = Color.White, style = MaterialTheme.typography.labelMedium)
             }
         }
     }

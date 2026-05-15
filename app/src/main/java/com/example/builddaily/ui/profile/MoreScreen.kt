@@ -48,6 +48,9 @@ import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.MenuBook
 
+/**
+ * Main "More" screen providing access to various utility modules and settings.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreScreen(
@@ -57,7 +60,7 @@ fun MoreScreen(
     onNavigateToEvolution: () -> Unit,
     onNavigateToHydration: () -> Unit,
     onNavigateToBuyList: () -> Unit,
-    onNavigateToBookLibrary: () -> Unit
+    onNavigateToBookLibrary: () -> Unit,
 ) {
     val context = LocalContext.current
 

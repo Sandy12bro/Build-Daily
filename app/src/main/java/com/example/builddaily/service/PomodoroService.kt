@@ -86,13 +86,32 @@ class PomodoroService : Service() {
         timerJob?.cancel()
         startForeground(NOTIFICATION_ID, buildNotification())
 
+        val durationSeconds = timeLeft.value
+        val endTimeMs = System.currentTimeMillis() + (durationSeconds * 1000L)
+        var endingSoonNotified = false
+
         timerJob = serviceScope.launch {
-            while (timeLeft.value > 0 && isRunning.value) {
-                delay(1000)
-                timeLeft.value -= 1
-                updateNotification()
+            while (isRunning.value) {
+                val now = System.currentTimeMillis()
+                val remainingMs = (endTimeMs - now).coerceAtLeast(0)
+                val remainingSec = (remainingMs / 1000).toInt()
+                
+                if (remainingSec != timeLeft.value) {
+                    timeLeft.value = remainingSec
+                    updateNotification()
+                    
+                    // Ending Soon Notification (at 1 minute left)
+                    if (remainingSec == 60 && !endingSoonNotified) {
+                        showEndingSoonNotification()
+                        endingSoonNotified = true
+                    }
+                }
+
+                if (remainingSec == 0) break
+                delay(200) // Fast poll for better UI sync, but accurate math
             }
-            if (timeLeft.value == 0) {
+
+            if (timeLeft.value == 0 && isRunning.value) {
                 isRunning.value = false
                 isCompleted.value = true
                 
@@ -115,6 +134,17 @@ class PomodoroService : Service() {
                 stopSelf()
             }
         }
+    }
+
+    private fun showEndingSoonNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Mission Ending Soon")
+            .setContentText("Focus period: 1 minute remaining. Finish strong!")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+        notificationManager.notify(NOTIFICATION_ID + 2, notification)
     }
 
     private fun stopTimer() {

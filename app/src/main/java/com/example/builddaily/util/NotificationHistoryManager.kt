@@ -23,10 +23,15 @@ object NotificationHistoryManager {
         
         currentHistory.add(0, NotificationLog(title, description, System.currentTimeMillis()))
         
-        // Keep only last 20 entries
-        val limitedHistory = currentHistory.take(20)
+        // Keep only last 100 entries for a true "Notification Center" experience
+        val limitedHistory = currentHistory.take(100)
         
         prefs.edit().putString(KEY_HISTORY, json.encodeToString(limitedHistory)).apply()
+    }
+
+    fun clearHistory(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().remove(KEY_HISTORY).apply()
     }
 
     fun getHistory(context: Context): List<NotificationLog> {

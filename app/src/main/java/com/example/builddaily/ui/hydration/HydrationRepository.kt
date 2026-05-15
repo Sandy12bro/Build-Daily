@@ -9,7 +9,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.daysUntil
 
-class HydrationRepository(context: Context) {
+class HydrationRepository(val context: Context) {
     private val prefs = context.getSharedPreferences("hydration_tracker_prefs", Context.MODE_PRIVATE)
     private val json = Json { ignoreUnknownKeys = true }
 

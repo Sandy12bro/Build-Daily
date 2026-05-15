@@ -8,6 +8,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -47,17 +48,27 @@ fun NotificationSettingsScreen(onBack: () -> Unit) {
         )
     }
 
-    val history = remember { NotificationHistoryManager.getHistory(context) }
+    var history by remember { mutableStateOf(NotificationHistoryManager.getHistory(context)) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                title = { AppTitleWithLogo("Notifications", showLogo = false) },
+                title = { AppTitleWithLogo("Notification Center", showLogo = false) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                actions = {
+                    if (history.isNotEmpty()) {
+                        TextButton(onClick = { 
+                            NotificationHistoryManager.clearHistory(context)
+                            history = emptyList()
+                        }) {
+                            Text("Clear All", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             )
@@ -148,13 +159,20 @@ fun NotificationSettingsScreen(onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (history.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No recent notifications", color = Color.White.copy(alpha = 0.5f))
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(bottom = 100.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(Icons.Default.Notifications, null, modifier = Modifier.size(64.dp).alpha(0.05f), tint = Color.White)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("NO RECENT LOGS", color = Color.White.copy(alpha = 0.2f), fontWeight = FontWeight.Black, letterSpacing = 2.sp)
                 }
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 32.dp)
                 ) {
                     items(history) { log ->
                         NotificationLogItem(log)

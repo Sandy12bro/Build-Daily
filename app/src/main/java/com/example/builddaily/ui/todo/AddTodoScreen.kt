@@ -44,6 +44,9 @@ fun AddTodoScreen(
     var category by remember { mutableStateOf("General") }
     var priority by remember { mutableStateOf(TodoPriority.MEDIUM) }
     var deadline by remember { mutableStateOf<Long?>(null) }
+    var notes by remember { mutableStateOf("") }
+    var tagsInput by remember { mutableStateOf("") }
+    var hasReminder by remember { mutableStateOf(false) }
 
     val categories = listOf("General", "Personal", "Work", "Health", "Study", "Finance")
 
@@ -175,32 +178,103 @@ fun AddTodoScreen(
                 Text("Priority", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    TodoPriority.values().forEach { p ->
+                    TodoPriority.entries.forEach { p ->
                         val isSelected = priority == p
                         val pColor = when(p) {
-                            TodoPriority.HIGH -> FlareRed
+                            TodoPriority.CRITICAL -> FlareRed
+                            TodoPriority.HIGH -> SolarYellow
                             TodoPriority.MEDIUM -> ElectricBlue
                             TodoPriority.LOW -> MutedSlate
                         }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(16.dp))
+                                .clip(RoundedCornerShape(12.dp))
                                 .background(if (isSelected) pColor.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.03f))
-                                .border(1.dp, if (isSelected) pColor else Color.Transparent, RoundedCornerShape(16.dp))
+                                .border(
+                                    1.dp, 
+                                    if (isSelected) pColor else Color.Transparent, 
+                                    RoundedCornerShape(12.dp)
+                                )
                                 .clickable { priority = p }
-                                .padding(vertical = 16.dp),
+                                .padding(vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 p.name,
                                 color = if (isSelected) pColor else Color.White.copy(alpha = 0.3f),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
+                                fontWeight = FontWeight.Black,
+                                fontSize = 10.sp
                             )
                         }
                     }
                 }
+            }
+
+            // Notes Input
+            Column {
+                Text("Notes (Optional)", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                TextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    modifier = Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp)),
+                    placeholder = { Text("Add details or mission notes...", color = Color.White.copy(alpha = 0.2f)) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White.copy(alpha = 0.05f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+                        focusedIndicatorColor = ElectricBlue,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+            }
+
+            // Tags Input
+            Column {
+                Text("Tags (Comma separated)", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                TextField(
+                    value = tagsInput,
+                    onValueChange = { tagsInput = it },
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)),
+                    placeholder = { Text("e.g. urgent, creative, team", color = Color.White.copy(alpha = 0.2f)) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White.copy(alpha = 0.05f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+                        focusedIndicatorColor = ElectricBlue,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+            }
+
+            // Reminder Toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.03f))
+                    .clickable { hasReminder = !hasReminder }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Schedule, null, tint = ElectricBlue)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Enable Reminder", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Switch(
+                    checked = hasReminder,
+                    onCheckedChange = { hasReminder = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = ElectricBlue,
+                        checkedTrackColor = ElectricBlue.copy(alpha = 0.3f)
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -208,7 +282,8 @@ fun AddTodoScreen(
             // Save Button
             Button(
                 onClick = {
-                    viewModel.addTodo(title, category, priority, deadline)
+                    val tags = tagsInput.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    viewModel.addTodo(title, category, priority, deadline, notes, tags, hasReminder)
                     ActionMessageManager.postMessage("Task successfully launched! 🚀", ActionType.ADDED)
                     onBack()
                 },

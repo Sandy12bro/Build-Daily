@@ -14,6 +14,11 @@ class NotificationReceiver : BroadcastReceiver() {
         val notificationHelper = NotificationHelper(context)
         notificationHelper.showNotification(title, description)
         
+        // Daisy-chain hydration reminders
+        if (intent.getBooleanExtra("is_hydration", false)) {
+            HydrationScheduler.reschedule(context)
+        }
+
         // Log to history
         NotificationHistoryManager.addToHistory(context, title, description)
     }
