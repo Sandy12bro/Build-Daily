@@ -13,6 +13,7 @@ import com.example.builddaily.R
 class NotificationHelper(private val context: Context) {
 
     companion object {
+        const val ACTION_LOG_WATER = "com.example.builddaily.ACTION_LOG_WATER"
         const val CHANNEL_ID = "task_reminders"
         const val CHANNEL_NAME = "Task Reminders"
     }
@@ -35,7 +36,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    fun showNotification(title: String, description: String?) {
+    fun showNotification(title: String, description: String?, isHydration: Boolean = false) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -44,24 +45,36 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Standard system icon for maximum reliability
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(description ?: "It's time to start your task!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM) // Categorize as alarm for better delivery
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setVibrate(longArrayOf(0, 500, 200, 500))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .build()
 
+        val notificationId = System.currentTimeMillis().toInt()
+        if (isHydration) {
+            val logIntent = Intent(context, NotificationReceiver::class.java).apply {
+                action = ACTION_LOG_WATER
+                putExtra("amount", 250)
+                putExtra("notification_id", notificationId)
+            }
+            val logPendingIntent = PendingIntent.getBroadcast(
+                context, 1001, logIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            builder.addAction(android.R.drawable.ic_menu_add, "Log 250ml", logPendingIntent)
+        }
+
+        val notification = builder.build()
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
-        android.util.Log.d("NotificationHelper", "Firing notification: $title")
-        
         try {
-            notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+            notificationManager.notify(notificationId, notification)
         } catch (e: Exception) {
             android.util.Log.e("NotificationHelper", "Failed to show notification", e)
         }

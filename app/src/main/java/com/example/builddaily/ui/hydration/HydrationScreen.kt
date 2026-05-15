@@ -41,6 +41,12 @@ import com.example.builddaily.util.ActionType
 import com.example.builddaily.util.formatTime
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Instant
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.atStartOfDayIn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,9 +70,13 @@ fun HydrationScreen(
     val records by viewModel.records.collectAsState()
     val stats by viewModel.stats.collectAsState()
     val consumedTodayMl by viewModel.consumedTodayMl.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val viewMode by viewModel.viewMode.collectAsState()
+    val aggregatedMl by viewModel.aggregatedMl.collectAsState()
 
     var showConfigDialog by remember { mutableStateOf(false) }
     var showCustomDrinkDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
     var selectedDrinkTypeForCustom by remember { mutableStateOf("Water") }
 
     // Premium UI Theme colors
@@ -74,11 +84,8 @@ fun HydrationScreen(
     val GlowBlue = Color(0xFF38BDF8)
     val GlassSurface = Color.White.copy(alpha = 0.06f)
 
-    val todayStr = remember {
-        val cal = Calendar.getInstance()
-        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
-    }
-    val todayRecords = records.filter { it.dateStr == todayStr }
+    val selectedDateStr = selectedDate.toString()
+    val filteredRecords = records.filter { it.dateStr == selectedDateStr }
 
     Box(modifier = Modifier.fillMaxSize().background(SpaceBlack)) {
         NebulaBackground()
@@ -155,7 +162,19 @@ fun HydrationScreen(
                     SmartNotificationsPanel(config = config, onUpdateConfig = { viewModel.updateConfig(it) })
                 }
 
-                // 5. Wellness Indicators & Tips
+                // 5. History & Insights Navigator
+                item {
+                    HistoryNavigatorCard(
+                        selectedDate = selectedDate,
+                        viewMode = viewMode,
+                        aggregatedMl = aggregatedMl,
+                        onModeChange = { viewModel.setViewMode(it) },
+                        onOpenDatePicker = { showDatePicker = true },
+                        cyanAccent = CyanAccent
+                    )
+                }
+
+                // 6. Wellness Indicators & Tips
                 item {
                     WellnessIndicatorsSection(consumedMl = consumedTodayMl, goalMl = config.calculatedGoalMl)
                 }
@@ -173,7 +192,7 @@ fun HydrationScreen(
                 // 8. Hydration Timeline Log
                 item {
                     Text(
-                        text = "Today's Intake Log",
+                        text = if (selectedDate.toString() == Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()) "Today's Intake Log" else "Intake Log for $selectedDate",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -181,7 +200,7 @@ fun HydrationScreen(
                     )
                 }
 
-                if (todayRecords.isEmpty()) {
+                if (filteredRecords.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier
@@ -197,7 +216,7 @@ fun HydrationScreen(
                         }
                     }
                 } else {
-                    items(todayRecords, key = { it.id }) { record ->
+                    items(filteredRecords, key = { it.id }) { record ->
                         HydrationLogItem(
                             record = record,
                             onDelete = { viewModel.deleteRecord(record.id) }
@@ -234,6 +253,131 @@ fun HydrationScreen(
                     showCustomDrinkDialog = false
                 }
             )
+        }
+
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = selectedDate.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+            )
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { ms ->
+                            val instant = Instant.fromEpochMilliseconds(ms)
+                            val date = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
+                            viewModel.setSelectedDate(date)
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text("OK", color = CyanAccent)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancel")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistoryNavigatorCard(
+    selectedDate: LocalDate,
+    viewMode: HydrationViewMode,
+    aggregatedMl: Int,
+    onModeChange: (HydrationViewMode) -> Unit,
+    onOpenDatePicker: () -> Unit,
+    cyanAccent: Color
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "History & Insights",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { onOpenDatePicker() }
+                    ) {
+                        Text(
+                            text = when(viewMode) {
+                                HydrationViewMode.DAY -> selectedDate.toString()
+                                HydrationViewMode.WEEK -> "Week of ${selectedDate}"
+                                HydrationViewMode.MONTH -> "${selectedDate.month} ${selectedDate.year}"
+                                HydrationViewMode.YEAR -> "${selectedDate.year}"
+                            },
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.CalendarToday, contentDescription = null, tint = cyanAccent, modifier = Modifier.size(16.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Total Intake",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.4f)
+                    )
+                    Text(
+                        text = "$aggregatedMl ml",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = cyanAccent,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // View Mode Selector
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                HydrationViewMode.entries.forEach { mode ->
+                    val isSelected = viewMode == mode
+                    Button(
+                        onClick = { onModeChange(mode) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSelected) cyanAccent else Color.White.copy(alpha = 0.05f)
+                        ),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = mode.name.lowercase().replaceFirstChar { it.uppercase() },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) SpaceBlack else Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
     }
 }

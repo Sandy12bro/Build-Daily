@@ -9,7 +9,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.coroutines.launch
+
+enum class HydrationViewMode { DAY, WEEK, MONTH, YEAR }
 
 class HydrationViewModel(
     private val repository: HydrationRepository,
@@ -27,6 +33,15 @@ class HydrationViewModel(
 
     private val _consumedTodayMl = MutableStateFlow(0)
     val consumedTodayMl: StateFlow<Int> = _consumedTodayMl.asStateFlow()
+
+    private val _selectedDate = MutableStateFlow(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date)
+    val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    private val _viewMode = MutableStateFlow(HydrationViewMode.DAY)
+    val viewMode: StateFlow<HydrationViewMode> = _viewMode.asStateFlow()
+
+    private val _aggregatedMl = MutableStateFlow(0)
+    val aggregatedMl: StateFlow<Int> = _aggregatedMl.asStateFlow()
 
     init {
         refreshState()
@@ -47,6 +62,56 @@ class HydrationViewModel(
             .sumOf { it.amountMl }
         
         _consumedTodayMl.value = todaySum
+        calculateAggregation()
+    }
+
+    fun setSelectedDate(date: LocalDate) {
+        _selectedDate.value = date
+        calculateAggregation()
+    }
+
+    fun setViewMode(mode: HydrationViewMode) {
+        _viewMode.value = mode
+        calculateAggregation()
+    }
+
+    private fun calculateAggregation() {
+        val records = _records.value
+        val date = _selectedDate.value
+        val mode = _viewMode.value
+
+        val filtered = when (mode) {
+            HydrationViewMode.DAY -> {
+                val dateStr = date.toString()
+                records.filter { it.dateStr == dateStr && it.drinkType == "Water" }
+            }
+            HydrationViewMode.WEEK -> {
+                // Get start of week (assuming Monday)
+                val dayOfWeek = date.dayOfWeek.ordinal // 0 = Mon (usually in ISO, but kotlinx.datetime might differ, ordinal is 0 for Monday in ISO 8601 if using Monday start)
+                // Actually kotlinx.datetime DayOfWeek is an enum.
+                val daysToSubtract = date.dayOfWeek.ordinal
+                val startOfWeek = date.minus(daysToSubtract, DateTimeUnit.DAY)
+                val endOfWeek = startOfWeek.plus(6, DateTimeUnit.DAY)
+                
+                records.filter { 
+                    val rDate = LocalDate.parse(it.dateStr)
+                    rDate in startOfWeek..endOfWeek && it.drinkType == "Water"
+                }
+            }
+            HydrationViewMode.MONTH -> {
+                records.filter { 
+                    val rDate = LocalDate.parse(it.dateStr)
+                    rDate.month == date.month && rDate.year == date.year && it.drinkType == "Water"
+                }
+            }
+            HydrationViewMode.YEAR -> {
+                records.filter { 
+                    val rDate = LocalDate.parse(it.dateStr)
+                    rDate.year == date.year && it.drinkType == "Water"
+                }
+            }
+        }
+        _aggregatedMl.value = filtered.sumOf { it.amountMl }
     }
 
     fun updateConfig(newConfig: HydrationGoalConfig) {

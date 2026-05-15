@@ -28,8 +28,9 @@ class BootReceiver : BroadcastReceiver() {
                     TodoScheduler.scheduleTodoReminder(context, it) 
                 }
 
-                // 3. Reschedule Hydration (To be implemented)
+                // 3. Reschedule Hydration
                 HydrationScheduler.reschedule(context)
+                HydrationWatchdogWorker.schedule(context)
             }
         }
     }

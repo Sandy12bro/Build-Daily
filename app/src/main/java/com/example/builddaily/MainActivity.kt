@@ -28,6 +28,7 @@ class MainActivity : FragmentActivity() {
     ) { isGranted ->
         if (isGranted) {
             com.example.builddaily.util.HydrationScheduler.kickstart(this)
+            com.example.builddaily.util.HydrationWatchdogWorker.schedule(this)
         }
     }
 
@@ -48,6 +49,7 @@ class MainActivity : FragmentActivity() {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             com.example.builddaily.util.HydrationScheduler.kickstart(this)
+            com.example.builddaily.util.HydrationWatchdogWorker.schedule(this)
         }
 
         enableEdgeToEdge()
