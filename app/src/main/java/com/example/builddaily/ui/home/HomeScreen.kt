@@ -120,7 +120,7 @@ fun HomeScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = GraphicsColor.Transparent),
                     title = {
                         Column {
-                            com.example.builddaily.ui.components.AppTitleWithLogo("Build Daily")
+                            AppTitleWithLogo("Build Daily")
                             Text(
                                 today().formatDisplay(),
                                 style = MaterialTheme.typography.bodySmall,
@@ -142,132 +142,161 @@ fun HomeScreen(
                 }
             }
         ) { padding ->
-            Column(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                val completedCount = tasks.count { it.isCompleted }
-                val totalCount = tasks.size
-                val progress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
+                val isWide = maxWidth > 600.dp
+                val contentPadding = if (isWide) 32.dp else 16.dp
 
+                Column(modifier = Modifier.fillMaxSize()) {
+                    val completedCount = tasks.count { it.isCompleted }
+                    val totalCount = tasks.size
+                    val progress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Day Progress",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = GraphicsColor.White
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            val emoji = when {
-                                progress >= 1.0f -> "🤩"
-                                progress >= 0.8f -> "😄"
-                                progress >= 0.6f -> "😊"
-                                progress >= 0.4f -> "🙂"
-                                progress >= 0.2f -> "😐"
-                                else -> "😢"
-                            }
-                            
-                            AnimatedContent(
-                                targetState = emoji,
-                                transitionSpec = {
-                                    fadeIn(animationSpec = tween(600)) + scaleIn(initialScale = 0.8f) togetherWith
-                                            fadeOut(animationSpec = tween(600)) + scaleOut(targetScale = 0.8f)
-                                },
-                                label = "EmojiAnimation"
-                            ) { targetEmoji ->
-                                Text(
-                                    text = targetEmoji,
-                                    fontSize = 24.sp,
-                                )
-                            }
-                        }
-                        Text(
-                            text = "$completedCount/$totalCount",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else GraphicsColor.White.copy(alpha = 0.5f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    androidx.compose.material3.LinearProgressIndicator(
-                        progress = { progress },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(14.dp)
-                            .clip(RoundedCornerShape(7.dp))
-                            .border(
-                                width = 1.dp,
-                                color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen.copy(alpha = 0.3f) else GraphicsColor.Transparent,
-                                shape = RoundedCornerShape(7.dp)
-                            ),
-                        color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else com.example.builddaily.ui.theme.CyberPurple,
-                        trackColor = GraphicsColor.White.copy(alpha = 0.05f),
-                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
-                    )
-                }
-
-                PullToRefreshBox(
-                    isRefreshing = isLoading,
-                    onRefresh = { viewModel.loadTasks() },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    when {
-                        error != null && tasks.isEmpty() -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(error ?: "Error", color = MaterialTheme.colorScheme.error)
-                            }
-                        }
-                        !isLoading && tasks.isEmpty() -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("No tasks for today", style = MaterialTheme.typography.titleMedium, color = GraphicsColor.White.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(8.dp))
+                            .padding(horizontal = contentPadding, vertical = 16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Day Progress",
+                                    style = if (isWide) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GraphicsColor.White
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                val emoji = when {
+                                    progress >= 1.0f -> "🤩"
+                                    progress >= 0.8f -> "😄"
+                                    progress >= 0.6f -> "😊"
+                                    progress >= 0.4f -> "🙂"
+                                    progress >= 0.2f -> "😐"
+                                    else -> "😢"
+                                }
+                                
+                                AnimatedContent(
+                                    targetState = emoji,
+                                    transitionSpec = {
+                                        fadeIn(animationSpec = tween(600)) + scaleIn(initialScale = 0.8f) togetherWith
+                                                fadeOut(animationSpec = tween(600)) + scaleOut(targetScale = 0.8f)
+                                    },
+                                    label = "EmojiAnimation"
+                                ) { targetEmoji ->
                                     Text(
-                                        "Tap + to add a task",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                                        text = targetEmoji,
+                                        fontSize = if (isWide) 32.sp else 24.sp,
                                     )
                                 }
                             }
+                            Text(
+                                text = "$completedCount/$totalCount",
+                                style = if (isWide) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else GraphicsColor.White.copy(alpha = 0.5f)
+                            )
                         }
-                        else -> {
-                            LazyColumn(
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                itemsIndexed(tasks, key = { _, task -> task.id }) { index, task ->
-                                    TaskTimelineItem(
-                                        index = index,
-                                        task = task,
-                                        totalTasks = tasks.size,
-                                        onToggleComplete = { _ -> 
-                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                            viewModel.toggleTaskCompletion(task) 
-                                            val status = if (!task.isCompleted) "completed! 🎉" else "moved to pending."
-                                            com.example.builddaily.util.ActionMessageManager.postMessage("Task $status", if (!task.isCompleted) com.example.builddaily.util.ActionType.COMPLETED else com.example.builddaily.util.ActionType.INCOMPLETE)
-                                        },
-                                        onDelete = { 
-                                            viewModel.deleteTask(task) 
-                                            com.example.builddaily.util.ActionMessageManager.postMessage("Task deleted.", com.example.builddaily.util.ActionType.DELETED)
-                                        },
-                                        onEdit = { onEditTask(task.id) },
-                                        onRepeat = { 
-                                            viewModel.repeatTask(task) 
-                                            com.example.builddaily.util.ActionMessageManager.postMessage("Task repeated for tomorrow.", com.example.builddaily.util.ActionType.REPEATED)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        androidx.compose.material3.LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(if (isWide) 20.dp else 14.dp)
+                                .clip(RoundedCornerShape(if (isWide) 10.dp else 7.dp))
+                                .border(
+                                    width = 1.dp,
+                                    color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen.copy(alpha = 0.3f) else GraphicsColor.Transparent,
+                                    shape = RoundedCornerShape(if (isWide) 10.dp else 7.dp)
+                                ),
+                            color = if (progress >= 1.0f) com.example.builddaily.ui.theme.MintGreen else com.example.builddaily.ui.theme.CyberPurple,
+                            trackColor = GraphicsColor.White.copy(alpha = 0.05f),
+                            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                        )
+                    }
+
+                    PullToRefreshBox(
+                        isRefreshing = isLoading,
+                        onRefresh = { viewModel.loadTasks() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        when {
+                            error != null && tasks.isEmpty() -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text(error ?: "Error", color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                            !isLoading && tasks.isEmpty() -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("No tasks for today", style = if (isWide) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleMedium, color = GraphicsColor.White.copy(alpha = 0.6f))
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            "Tap + to add a task",
+                                            style = if (isWide) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                                        )
+                                    }
+                                }
+                            }
+                            else -> {
+                                if (isWide) {
+                                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                                        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
+                                        contentPadding = PaddingValues(horizontal = contentPadding, vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        items(tasks.size, key = { tasks[it].id }) { index ->
+                                            val task = tasks[index]
+                                            Box(modifier = Modifier.padding(bottom = 16.dp)) {
+                                                TaskCard(
+                                                    task = task,
+                                                    onToggleComplete = { _ -> 
+                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        viewModel.toggleTaskCompletion(task) 
+                                                    },
+                                                    onDelete = { viewModel.deleteTask(task) },
+                                                    onEdit = { onEditTask(task.id) },
+                                                    onRepeat = { viewModel.repeatTask(task) }
+                                                )
+                                            }
                                         }
-                                    )
+                                    }
+                                } else {
+                                    LazyColumn(
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        itemsIndexed(tasks, key = { _, task -> task.id }) { index, task ->
+                                            TaskTimelineItem(
+                                                index = index,
+                                                task = task,
+                                                totalTasks = tasks.size,
+                                                onToggleComplete = { _ -> 
+                                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                    viewModel.toggleTaskCompletion(task) 
+                                                    val status = if (!task.isCompleted) "completed! 🎉" else "moved to pending."
+                                                    com.example.builddaily.util.ActionMessageManager.postMessage("Task $status", if (!task.isCompleted) com.example.builddaily.util.ActionType.COMPLETED else com.example.builddaily.util.ActionType.INCOMPLETE)
+                                                },
+                                                onDelete = { 
+                                                    viewModel.deleteTask(task) 
+                                                    com.example.builddaily.util.ActionMessageManager.postMessage("Task deleted.", com.example.builddaily.util.ActionType.DELETED)
+                                                },
+                                                onEdit = { onEditTask(task.id) },
+                                                onRepeat = { 
+                                                    viewModel.repeatTask(task) 
+                                                    com.example.builddaily.util.ActionMessageManager.postMessage("Task repeated for tomorrow.", com.example.builddaily.util.ActionType.REPEATED)
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

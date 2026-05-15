@@ -50,12 +50,12 @@ fun PatternLockView(
                     onDragStart = { offset ->
                         selectedDots = emptyList()
                         currentTouchPoint = offset
-                        val hit = findHit(offset, dotCenters, radius * 2)
+                        val hit = findHit(offset, dotCenters, cellSize / 2)
                         if (hit != -1) selectedDots = listOf(hit)
                     },
                     onDrag = { change, _ ->
                         currentTouchPoint = change.position
-                        val hit = findHit(change.position, dotCenters, radius * 2)
+                        val hit = findHit(change.position, dotCenters, cellSize / 2)
                         if (hit != -1 && hit !in selectedDots) {
                             selectedDots = selectedDots + hit
                         }

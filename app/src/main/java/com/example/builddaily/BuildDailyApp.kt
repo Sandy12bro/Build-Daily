@@ -29,6 +29,7 @@ import com.example.builddaily.ui.history.HistoryScreen
 import com.example.builddaily.ui.home.HomeScreen
 import com.example.builddaily.ui.profile.MoreScreen
 import com.example.builddaily.ui.profile.NotificationSettingsScreen
+import com.example.builddaily.ui.profile.SettingsScreen
 import com.example.builddaily.ui.splash.SplashScreen
 import com.example.builddaily.ui.stats.StatsScreen
 import com.example.builddaily.ui.pomodoro.PomodoroScreen
@@ -51,6 +52,7 @@ import com.example.builddaily.data.security.SecurityRepository
 import com.example.builddaily.ui.security.SecurityViewModel
 import com.example.builddaily.ui.security.SecurityLockScreen
 import com.example.builddaily.ui.security.SecuritySettingsScreen
+import com.example.builddaily.ui.security.SecuritySetupScreen
 
 @Composable
 fun BuildDailyApp(securityRepository: SecurityRepository) {
@@ -155,6 +157,14 @@ fun BuildDailyApp(securityRepository: SecurityRepository) {
                     SecuritySettingsScreen(
                         viewModel = securityViewModel,
                         repository = securityRepository,
+                        onNavigateToSetup = { navController.navigate("security_setup") },
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable("security_setup") {
+                    SecuritySetupScreen(
+                        viewModel = securityViewModel,
+                        onComplete = { navController.popBackStack() },
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -196,14 +206,20 @@ fun BuildDailyApp(securityRepository: SecurityRepository) {
                 }
                 composable("more") {
                     MoreScreen(
-                        onNavigateToNotifications = { navController.navigate("notification_settings") },
+                        onNavigateToSettings = { navController.navigate("settings") },
                         onNavigateToPomodoro = { navController.navigate("pomodoro") },
                         onNavigateToTodoList = { navController.navigate("to_do_list") },
                         onNavigateToEvolution = { navController.navigate("evolution") },
                         onNavigateToHydration = { navController.navigate("hydration") },
                         onNavigateToBuyList = { navController.navigate("buy_list") },
-                        onNavigateToBookLibrary = { navController.navigate("book_library") },
-                        onNavigateToSecurity = { navController.navigate("security_settings") }
+                        onNavigateToBookLibrary = { navController.navigate("book_library") }
+                    )
+                }
+                composable("settings") {
+                    SettingsScreen(
+                        onNavigateToSecurity = { navController.navigate("security_settings") },
+                        onNavigateToNotifications = { navController.navigate("notification_settings") },
+                        onBack = { navController.popBackStack() }
                     )
                 }
                 composable("evolution") {

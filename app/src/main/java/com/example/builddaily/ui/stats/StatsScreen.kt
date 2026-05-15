@@ -118,214 +118,234 @@ fun StatsScreen(
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                title = { 
-                    com.example.builddaily.ui.components.AppTitleWithLogo("Performance") 
-                }
-            )
-        }
-    ) { padding ->
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = ElectricBlue)
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    title = { 
+                        AppTitleWithLogo("Performance") 
+                    }
+                )
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                // Period Selector
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    StatsPeriod.values().forEachIndexed { index, p ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriod.values().size),
-                            onClick = { viewModel.setPeriod(p) },
-                            selected = period == p,
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = ElectricBlue,
-                                activeContentColor = Color.Black,
-                                inactiveContainerColor = Color.White.copy(alpha = 0.05f),
-                                inactiveContentColor = Color.White.copy(alpha = 0.5f)
-                            )
+        ) { padding ->
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
+                val isWide = maxWidth > 600.dp
+                val contentPadding = if (isWide) 32.dp else 16.dp
+                val chartHeight = if (isWide) 400.dp else 260.dp
+
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = ElectricBlue)
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(contentPadding)
+                    ) {
+                        // Period Selector
+                        SingleChoiceSegmentedButtonRow(
+                            modifier = Modifier.fillMaxWidth().height(if (isWide) 48.dp else 40.dp)
                         ) {
-                            Text(p.name.lowercase().replaceFirstChar { it.uppercase() })
+                            StatsPeriod.values().forEachIndexed { index, p ->
+                                SegmentedButton(
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriod.values().size),
+                                    onClick = { viewModel.setPeriod(p) },
+                                    selected = period == p,
+                                    colors = SegmentedButtonDefaults.colors(
+                                        activeContainerColor = ElectricBlue,
+                                        activeContentColor = Color.Black,
+                                        inactiveContainerColor = Color.White.copy(alpha = 0.05f),
+                                        inactiveContentColor = Color.White.copy(alpha = 0.5f)
+                                    )
+                                ) {
+                                    Text(
+                                        p.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        style = if (isWide) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                // Period Navigation
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = { viewModel.navigate(false) },
-                        modifier = Modifier
-                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
-                            .size(40.dp)
-                    ) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Back", tint = ElectricBlue)
-                    }
+                        // Period Navigation
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = { viewModel.navigate(false) },
+                                modifier = Modifier
+                                    .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                                    .size(if (isWide) 48.dp else 40.dp)
+                            ) {
+                                Icon(Icons.Default.ChevronLeft, contentDescription = "Back", tint = ElectricBlue)
+                            }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { showDatePicker = true }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.CalendarMonth,
-                            contentDescription = "Pick Date",
-                            tint = ElectricBlue.copy(alpha = 0.8f),
-                            modifier = Modifier.size(18.dp)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { showDatePicker = true }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.CalendarMonth,
+                                    contentDescription = "Pick Date",
+                                    tint = ElectricBlue.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(if (isWide) 24.dp else 18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = statsData.dateRangeText,
+                                    style = if (isWide) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+
+                            val isAtToday = remember(referenceDate, period) {
+                                referenceDate >= com.example.builddaily.util.today()
+                            }
+
+                            IconButton(
+                                onClick = { viewModel.navigate(true) },
+                                enabled = !isAtToday,
+                                modifier = Modifier
+                                    .background(
+                                        if (isAtToday) Color.Transparent else Color.White.copy(alpha = 0.05f),
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .size(if (isWide) 48.dp else 40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = "Forward",
+                                    tint = if (isAtToday) Color.White.copy(alpha = 0.2f) else ElectricBlue
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Stats Grid
+                        if (isWide) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                StatCard(label = "TOTAL", value = statsData.overallTotal.toString(), color = CyberPurple, modifier = Modifier.weight(1f))
+                                StatCard(label = "DONE", value = statsData.overallCompleted.toString(), color = MintGreen, modifier = Modifier.weight(1f))
+                                val efficiency = if (statsData.overallTotal > 0) (statsData.overallCompleted * 100 / statsData.overallTotal) else 0
+                                StatCard(label = "RATE", value = "$efficiency%", color = ElectricBlue, modifier = Modifier.weight(1f))
+                                StatCard(label = "STREAK", value = "${statsData.streak}🔥", color = SolarYellow, modifier = Modifier.weight(1f))
+                            }
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    StatCard(label = "TOTAL", value = statsData.overallTotal.toString(), color = CyberPurple, modifier = Modifier.weight(1f))
+                                    StatCard(label = "DONE", value = statsData.overallCompleted.toString(), color = MintGreen, modifier = Modifier.weight(1f))
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    val efficiency = if (statsData.overallTotal > 0) (statsData.overallCompleted * 100 / statsData.overallTotal) else 0
+                                    StatCard(label = "RATE", value = "$efficiency%", color = ElectricBlue, modifier = Modifier.weight(1f))
+                                    StatCard(label = "STREAK", value = "${statsData.streak}🔥", color = SolarYellow, modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        StatCard(
+                            label = "TOP STREAK", 
+                            value = "${userStats?.maxStreak ?: 0}🔥", 
+                            color = SolarYellow, 
+                            modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
                         Text(
-                            text = statsData.dateRangeText,
-                            style = MaterialTheme.typography.titleSmall,
+                            "Activity Trends",
+                            style = if (isWide) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                    }
+                        
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    val isAtToday = remember(referenceDate, period) {
-                        referenceDate >= com.example.builddaily.util.today()
-                    }
-
-                    IconButton(
-                        onClick = { viewModel.navigate(true) },
-                        enabled = !isAtToday,
-                        modifier = Modifier
-                            .background(
-                                if (isAtToday) Color.Transparent else Color.White.copy(alpha = 0.05f),
-                                RoundedCornerShape(12.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(chartHeight)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color.White.copy(alpha = 0.03f))
+                                .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
+                                .padding(24.dp)
+                        ) {
+                            CartesianChartHost(
+                                modifier = Modifier.fillMaxSize(),
+                                modelProducer = modelProducer,
+                                chart = rememberCartesianChart(
+                                    rememberLineCartesianLayer(
+                                        lineProvider = LineCartesianLayer.LineProvider.series(
+                                            LineCartesianLayer.Line(fill = LineCartesianLayer.LineFill.single(fill(CyberPurple))),
+                                            LineCartesianLayer.Line(fill = LineCartesianLayer.LineFill.single(fill(MintGreen)))
+                                        )
+                                    ),
+                                    startAxis = VerticalAxis.rememberStart(
+                                        itemPlacer = VerticalAxis.ItemPlacer.step({ 1.0 })
+                                    ),
+                                    bottomAxis = HorizontalAxis.rememberBottom(
+                                        labelRotationDegrees = if (period == StatsPeriod.DAILY || period == StatsPeriod.MONTHLY) 45f else 0f,
+                                        valueFormatter = { _, x, _ -> 
+                                            statsData.labels.getOrNull(x.toInt()) ?: " "
+                                        }
+                                    )
+                                ),
+                                scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
+                                zoomState = com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState(zoomEnabled = true)
                             )
-                            .size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.ChevronRight,
-                            contentDescription = "Forward",
-                            tint = if (isAtToday) Color.White.copy(alpha = 0.2f) else ElectricBlue
+                        }
+                        
+                        Spacer(modifier = Modifier.height(20.dp))
+                        
+                        // Legend
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            LegendItem(color = CyberPurple, label = "Total Tasks")
+                            Spacer(modifier = Modifier.width(32.dp))
+                            LegendItem(color = MintGreen, label = "Completed")
+                        }
+
+                        Spacer(modifier = Modifier.height(48.dp))
+
+                        // Activity Heatmap
+                        ActivityHeatmap(
+                            heatmapData = statsData.heatmapData,
+                            period = period,
+                            referenceDate = referenceDate,
+                            userStats = userStats
                         )
+                        
+                        Spacer(modifier = Modifier.height(40.dp))
                     }
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Stats Grid - Row 1
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StatCard(label = "TOTAL", value = statsData.overallTotal.toString(), color = CyberPurple, modifier = Modifier.weight(1f))
-                    StatCard(label = "DONE", value = statsData.overallCompleted.toString(), color = MintGreen, modifier = Modifier.weight(1f))
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Stats Grid - Row 2
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    val efficiency = if (statsData.overallTotal > 0) (statsData.overallCompleted * 100 / statsData.overallTotal) else 0
-                    StatCard(label = "RATE", value = "$efficiency%", color = ElectricBlue, modifier = Modifier.weight(1f))
-                    StatCard(label = "STREAK", value = "${statsData.streak}🔥", color = SolarYellow, modifier = Modifier.weight(1f))
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Stats Grid - Row 3
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StatCard(label = "TOP STREAK", value = "${userStats?.maxStreak ?: 0}🔥", color = SolarYellow, modifier = Modifier.weight(1f))
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text(
-                    "Activity Trends",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(260.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White.copy(alpha = 0.03f))
-                        .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
-                        .padding(20.dp)
-                ) {
-                    CartesianChartHost(
-                        modifier = Modifier.fillMaxSize(),
-                        modelProducer = modelProducer,
-                        chart = rememberCartesianChart(
-                            rememberLineCartesianLayer(
-                                lineProvider = LineCartesianLayer.LineProvider.series(
-                                    LineCartesianLayer.Line(fill = LineCartesianLayer.LineFill.single(fill(CyberPurple))),
-                                    LineCartesianLayer.Line(fill = LineCartesianLayer.LineFill.single(fill(MintGreen)))
-                                )
-                            ),
-                            startAxis = VerticalAxis.rememberStart(
-                                itemPlacer = VerticalAxis.ItemPlacer.step({ 1.0 })
-                            ),
-                            bottomAxis = HorizontalAxis.rememberBottom(
-                                labelRotationDegrees = if (period == StatsPeriod.DAILY || period == StatsPeriod.MONTHLY) 45f else 0f,
-                                valueFormatter = { _, x, _ -> 
-                                    statsData.labels.getOrNull(x.toInt()) ?: " "
-                                }
-                            )
-                        ),
-                        scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
-                        zoomState = com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState(zoomEnabled = true)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Legend
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    LegendItem(color = CyberPurple, label = "Total Tasks")
-                    Spacer(modifier = Modifier.width(24.dp))
-                    LegendItem(color = MintGreen, label = "Completed")
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Activity Heatmap
-                ActivityHeatmap(
-                    heatmapData = statsData.heatmapData,
-                    period = period,
-                    referenceDate = referenceDate,
-                    userStats = userStats
-                )
-                
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
-    }
 
     if (showDatePicker) {
         DatePickerDialog(

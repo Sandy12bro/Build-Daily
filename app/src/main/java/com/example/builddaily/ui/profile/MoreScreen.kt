@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +49,7 @@ import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Settings
 
 /**
  * Main "More" screen providing access to various utility modules and settings.
@@ -55,114 +57,97 @@ import androidx.compose.material.icons.filled.Shield
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreScreen(
-    onNavigateToNotifications: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onNavigateToPomodoro: () -> Unit,
     onNavigateToTodoList: () -> Unit,
     onNavigateToEvolution: () -> Unit,
     onNavigateToHydration: () -> Unit,
     onNavigateToBuyList: () -> Unit,
     onNavigateToBookLibrary: () -> Unit,
-    onNavigateToSecurity: () -> Unit,
 ) {
     val context = LocalContext.current
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                title = { AppTitleWithLogo("More", showLogo = false) }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MoreOption(
-                Icons.Default.Star, 
-                "Grow Your Life", 
-                "Watch your personal plant evolve"
-            ) {
-                onNavigateToEvolution()
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    title = { AppTitleWithLogo("More", showLogo = true) }
+                )
             }
+        ) { padding ->
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
+                val isWide = maxWidth > 600.dp
+                val contentPadding = if (isWide) 32.dp else 24.dp
+                val columnCount = if (maxWidth > 900.dp) 3 else if (isWide) 2 else 1
 
-            MoreOption(
-                Icons.AutoMirrored.Filled.Assignment, 
-                "TO-DO lists", 
-                "Manage your long-term mission log"
-            ) {
-                onNavigateToTodoList()
-            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(contentPadding)
+                ) {
+                    SectionHeader("Utilities")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    if (columnCount > 1) {
+                        // Adaptive Grid for Utilities
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            maxItemsInEachRow = columnCount
+                        ) {
+                            val utilityModifier = Modifier
+                                .weight(1f)
+                                .padding(bottom = 16.dp)
+                                .widthIn(min = 200.dp)
 
-            MoreOption(
-                Icons.Default.Timer, 
-                "Pomodoro Timer", 
-                "Focus with the galactic timer"
-            ) {
-                onNavigateToPomodoro()
-            }
+                            MoreOption(Icons.Default.Timer, "Pomodoro Timer", "Focus sessions with break alerts", utilityModifier) { onNavigateToPomodoro() }
+                            MoreOption(Icons.AutoMirrored.Filled.List, "Mission Logs", "Manage all your daily missions", utilityModifier) { onNavigateToTodoList() }
+                            MoreOption(Icons.Default.AutoAwesome, "Life Evolution", "Watch your personal tree grow", utilityModifier) { onNavigateToEvolution() }
+                            MoreOption(Icons.Default.WaterDrop, "Hydration Orbit", "Track daily water intake", utilityModifier) { onNavigateToHydration() }
+                            MoreOption(Icons.Default.ShoppingCart, "Market List", "Plan your premium shopping", utilityModifier) { onNavigateToBuyList() }
+                            MoreOption(Icons.Default.MenuBook, "Archive Library", "Track your knowledge growth", utilityModifier) { onNavigateToBookLibrary() }
+                        }
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            MoreOption(Icons.Default.Timer, "Pomodoro Timer", "Focus sessions with break alerts") { onNavigateToPomodoro() }
+                            MoreOption(Icons.AutoMirrored.Filled.List, "Mission Logs", "Manage all your daily missions") { onNavigateToTodoList() }
+                            MoreOption(Icons.Default.AutoAwesome, "Life Evolution", "Watch your personal tree grow") { onNavigateToEvolution() }
+                            MoreOption(Icons.Default.WaterDrop, "Hydration Orbit", "Track daily water intake") { onNavigateToHydration() }
+                            MoreOption(Icons.Default.ShoppingCart, "Market List", "Plan your premium shopping") { onNavigateToBuyList() }
+                            MoreOption(Icons.Default.MenuBook, "Archive Library", "Track your knowledge growth") { onNavigateToBookLibrary() }
+                        }
+                    }
 
-            MoreOption(
-                Icons.Default.Shield,
-                "Security & App Lock",
-                "PIN, Pattern & Biometric safety"
-            ) {
-                onNavigateToSecurity()
-            }
+                    Spacer(modifier = Modifier.height(32.dp))
+                    SectionHeader("Settings")
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            MoreOption(
-                Icons.Default.LocalDrink,
-                "Water Intake & Hydration",
-                "Track daily fluid & wellness vibes"
-            ) {
-                onNavigateToHydration()
-            }
-
-            MoreOption(
-                Icons.Default.ShoppingCart,
-                "Buy List & Budget",
-                "Plan purchases & track savings"
-            ) {
-                onNavigateToBuyList()
-            }
-
-            MoreOption(
-                Icons.Default.MenuBook,
-                "Book Library",
-                "Track reading & build knowledge"
-            ) {
-                onNavigateToBookLibrary()
-            }
-
-            MoreOption(
-                Icons.Default.Notifications, 
-                "Notifications", 
-                "Task reminders and alerts"
-            ) {
-                onNavigateToNotifications()
-            }
-            
-            MoreOption(
-                Icons.Default.Share, 
-                "Share App", 
-                "Share the official download link"
-            ) {
-                val shareUrl = "https://github.com/Sandy12bro/Build-Daily/raw/main/BuildDaily.apk"
-                val sendIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, "Build Daily - Elevate your productivity and watch your personal life tree grow! \uD83C\uDF0C\uD83C\uDF33\n\nDownload the latest version here: $shareUrl")
-                    type = "text/plain"
+                    MoreOption(
+                        Icons.Default.Settings,
+                        "App Settings",
+                        "Security, Notifications & Sharing",
+                        modifier = if (isWide) Modifier.fillMaxWidth(0.5f) else Modifier.fillMaxWidth()
+                    ) {
+                        onNavigateToSettings()
+                    }
+                    
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
-                context.startActivity(Intent.createChooser(sendIntent, "Share Link"))
             }
         }
-    }
+}
+
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+    )
 }
 
 @Composable
