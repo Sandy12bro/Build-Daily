@@ -23,6 +23,8 @@
 ### 🎯 Key Philosophy
 
 - **Time-First Approach**: Schedule tasks by time slots, not just lists
+- **Full Device Adaptivity**: Fully responsive UI for phones, tablets, and foldables
+- **Premium Security Vault**: Multi-method biometric and PIN-based protection
 - **Data-Driven Insights**: Understand your productivity patterns with detailed analytics
 - **Beautiful Experience**: Enjoy a premium galactic dark theme with smooth animations
 - **Privacy-First**: Device-based identity with no mandatory account creation
@@ -30,6 +32,18 @@
 ---
 
 ## 🌟 Features
+
+### 🛡️ Premium Security Vault
+- **Multi-Method Lock**: Choose between 4-Digit PIN, 6-Digit PIN, Pattern, or Alphanumeric Password
+- **Biometric Integration**: Seamless Fingerprint and Face Unlock support
+- **Secure Onboarding**: Refined security setup flow with no forced defaults
+- **Dynamic Lock Screen**: Beautiful, interactive lock UI with glassmorphism effects
+
+### 📱 Full Device Adaptivity
+- **Responsive Layouts**: Adaptive UI using `BoxWithConstraints` and `FlowRow`
+- **Tablet & Foldable Ready**: Intelligent multi-column grids for large screen optimization
+- **Keyboard Awareness**: Zero UI overlap with smart `imePadding` management
+- **Orientation Support**: Optimized layouts for both Portrait and Landscape modes
 
 ### 📅 Smart Time Scheduling
 - **Time-Based Tasks**: Schedule tasks with precise time slots
@@ -57,6 +71,7 @@
 - **Archive Logic**: Keep your main library clean while preserving history
 
 ### 📊 Powerful Analytics
+- **Adaptive Charts**: Responsive data visualization that scales with screen size
 - **Daily Completion Rate**: Track your daily progress
 - **Weekly Trends**: Visualize your weekly productivity
 - **Category Breakdown**: See performance by task type
@@ -121,14 +136,16 @@ app/
 │   ├── repository/         # Data access layer with precision persistence
 │   └── local/              # Local storage management
 ├── ui/
-│   ├── home/               # Home screen
+│   ├── home/               # Adaptive Home screen with grid/list support
+│   ├── security/           # Multi-method security vault & biometric logic
 │   ├── buylist/            # Wishlist & Budget Manager
 │   ├── booklibrary/        # Smart Reading Vault
 │   ├── hydration/          # Daisy-chain hydration module
-│   ├── stats/              # Advanced Analytics
+│   ├── stats/              # Advanced Analytics with responsive charts
+│   ├── profile/            # Unified Settings & Utilities hub
 │   ├── pomodoro/           # Pomodoro focus timer
 │   └── components/         # Reusable premium UI components
-├── util/                   # Utility classes (Schedulers, Formatters)
+├── util/                   # Utility classes (Schedulers, Formatters, BiometricHelper)
 └── BuildDailyApp.kt        # Application navigation & dependency hub
 ```
 
