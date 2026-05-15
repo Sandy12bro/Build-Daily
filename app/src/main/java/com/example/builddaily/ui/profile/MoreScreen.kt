@@ -113,8 +113,8 @@ fun MoreScreen(
                             MoreOption(Icons.AutoMirrored.Filled.List, "Mission Logs", "Manage all your daily missions", utilityModifier) { onNavigateToTodoList() }
                             MoreOption(Icons.Default.AutoAwesome, "Life Evolution", "Watch your personal tree grow", utilityModifier) { onNavigateToEvolution() }
                             MoreOption(Icons.Default.WaterDrop, "Hydration Orbit", "Track daily water intake", utilityModifier) { onNavigateToHydration() }
-                            MoreOption(Icons.Default.ShoppingCart, "Market List", "Plan your premium shopping", utilityModifier) { onNavigateToBuyList() }
-                            MoreOption(Icons.Default.MenuBook, "Archive Library", "Track your knowledge growth", utilityModifier) { onNavigateToBookLibrary() }
+                            MoreOption(Icons.Default.ShoppingCart, "Wishlist Planner", "Plan your premium shopping", utilityModifier) { onNavigateToBuyList() }
+                            MoreOption(Icons.Default.MenuBook, "Reading Vault", "Track your knowledge growth", utilityModifier) { onNavigateToBookLibrary() }
                         }
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -122,8 +122,8 @@ fun MoreScreen(
                             MoreOption(Icons.AutoMirrored.Filled.List, "Mission Logs", "Manage all your daily missions") { onNavigateToTodoList() }
                             MoreOption(Icons.Default.AutoAwesome, "Life Evolution", "Watch your personal tree grow") { onNavigateToEvolution() }
                             MoreOption(Icons.Default.WaterDrop, "Hydration Orbit", "Track daily water intake") { onNavigateToHydration() }
-                            MoreOption(Icons.Default.ShoppingCart, "Market List", "Plan your premium shopping") { onNavigateToBuyList() }
-                            MoreOption(Icons.Default.MenuBook, "Archive Library", "Track your knowledge growth") { onNavigateToBookLibrary() }
+                            MoreOption(Icons.Default.ShoppingCart, "Wishlist Planner", "Plan your premium shopping") { onNavigateToBuyList() }
+                            MoreOption(Icons.Default.MenuBook, "Reading Vault", "Track your knowledge growth") { onNavigateToBookLibrary() }
                         }
                     }
 
