@@ -1,4 +1,4 @@
-# 🚀 Build Daily — Smart Productivity App
+# <img src="assets/logo.png" width="40" height="40" align="center" alt="Build Daily Logo"> Build Daily — Smart Productivity App
 
 <div align="center">
 
