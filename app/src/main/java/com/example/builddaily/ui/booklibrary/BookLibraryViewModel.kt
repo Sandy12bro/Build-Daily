@@ -49,14 +49,10 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
         sortBooks(list.filter { it.status == ReadingStatus.FAVOURITE }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val favorites = combine(books, _sortOption) { list, sort ->
-        sortBooks(list.filter { it.isFavorite }, sort)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Analytics
     val totalPagesRead = books.map { list -> list.sumOf { it.pagesRead } }
     val completedCount = completed.map { list -> list.size }
-    val activeBooksCount = currentlyReading.map { list -> list.size }
 
     fun setTab(index: Int) {
         _selectedTab.value = index

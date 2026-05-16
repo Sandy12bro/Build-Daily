@@ -258,37 +258,6 @@ fun BookLibraryScreen(
 }
 
 @Composable
-fun CustomTabRow(selectedTab: Int, onTabSelected: (Int) -> Unit, tabs: List<String>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        tabs.forEachIndexed { index, title ->
-            val isSelected = selectedTab == index
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (isSelected) CyberPurple else Color.Transparent)
-                    .clickable { onTabSelected(index) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    title,
-                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    fontSize = 12.sp
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun ModernBookCard(
     book: Book,
     onEdit: () -> Unit,
@@ -513,7 +482,7 @@ fun ReadingGoalProgressCard(readingGoal: ReadingGoal, booksReadThisYear: Int, on
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.TrendingUp, contentDescription = null, tint = Color(0xFF34C759), modifier = Modifier.size(20.dp))
+                    Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = Color(0xFF34C759), modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Reading Goal", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
@@ -564,14 +533,6 @@ fun ReadingGoalProgressCard(readingGoal: ReadingGoal, booksReadThisYear: Int, on
                 }
             }
         }
-    }
-}
-
-@Composable
-fun AnalyticsStat(label: String, value: String, color: Color) {
-    Column {
-        Text(value, color = color, fontWeight = FontWeight.Black, fontSize = 20.sp)
-        Text(label, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp)
     }
 }
 
@@ -710,50 +671,6 @@ fun EditBookDialog(book: Book, onDismiss: () -> Unit, onUpdate: (Book) -> Unit, 
 }
 
 @Composable
-fun TagChip(tag: String, onRemove: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .padding(4.dp)
-            .background(ElectricBlue.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-            .border(1.dp, ElectricBlue.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(tag, color = ElectricBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                Icons.Default.Close,
-                contentDescription = null,
-                tint = ElectricBlue,
-                modifier = Modifier.size(10.dp).clickable { onRemove() }
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun PriorityChip(priority: BookPriority, isSelected: Boolean, onClick: () -> Unit) {
-    val color = Color(priority.colorHex)
-    Box(
-        modifier = Modifier
-            .height(36.dp)
-            .background(if (isSelected) color.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
-            .border(if (isSelected) 1.dp else 0.dp, color, RoundedCornerShape(10.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            priority.displayName.split(" ").last(),
-            color = if (isSelected) color else Color.White.copy(alpha = 0.4f),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
 fun AddBookDialog(onDismiss: () -> Unit, onAdd: (Book) -> Unit) {
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
@@ -849,7 +766,8 @@ fun AddBookDialog(onDismiss: () -> Unit, onAdd: (Book) -> Unit) {
                                     status = status,
                                     language = language,
                                     notes = notes,
-                                    coverUri = coverUri
+                                    coverUri = coverUri,
+                                    lastUpdated = Clock.System.now().toString()
                                 ))
                             }
                         },
@@ -887,47 +805,38 @@ fun DialogTextField(
             focusedLabelColor = CyberPurple,
             unfocusedLabelColor = Color.White.copy(alpha = 0.4f),
             focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
+            unfocusedTextColor = Color.White.copy(alpha = 0.8f)
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp)
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownField(label: String, selectedValue: String, options: List<String>, icon: ImageVector, onSelect: (String) -> Unit) {
+fun DropdownField(label: String, selectedValue: String, options: List<String>, icon: ImageVector, onValueSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
+        onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
             value = selectedValue,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
-            leadingIcon = { Icon(icon, contentDescription = null, tint = CyberPurple.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) },
-            trailingIcon = { 
-                val emoji = when(label) {
-                    "Genre" -> "📚"
-                    "Priority" -> "🚩"
-                    "Status" -> "🔖"
-                    else -> ""
-                }
-                Text(emoji, modifier = Modifier.padding(end = 8.dp))
-            },
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+            leadingIcon = { Icon(icon, contentDescription = null, tint = CyberPurple, modifier = Modifier.size(20.dp)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = CyberPurple,
                 unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
                 focusedLabelColor = CyberPurple,
                 unfocusedLabelColor = Color.White.copy(alpha = 0.4f),
                 focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                unfocusedTextColor = Color.White.copy(alpha = 0.8f)
             ),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(16.dp)
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -938,7 +847,7 @@ fun DropdownField(label: String, selectedValue: String, options: List<String>, i
                 DropdownMenuItem(
                     text = { Text(option, color = Color.White) },
                     onClick = {
-                        onSelect(option)
+                        onValueSelected(option)
                         expanded = false
                     }
                 )
@@ -953,37 +862,42 @@ fun EditReadingGoalDialog(currentGoal: ReadingGoal, onDismiss: () -> Unit, onSav
     var monthlyGoal by remember { mutableStateOf(currentGoal.monthlyGoal.toString()) }
     var pagesPerDay by remember { mutableStateOf(currentGoal.pagesPerDay.toString()) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DeepVoid,
-        shape = RoundedCornerShape(28.dp),
-        title = { Text("Reading Targets 🎯", color = Color.White, fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                DialogTextField("Yearly Goal (Books)", yearlyGoal, onValueChange = { yearlyGoal = it }, icon = Icons.Default.EmojiEvents)
-                DialogTextField("Monthly Goal (Books)", monthlyGoal, onValueChange = { monthlyGoal = it }, icon = Icons.Default.CalendarMonth)
-                DialogTextField("Daily Goal (Pages)", pagesPerDay, onValueChange = { pagesPerDay = it }, icon = Icons.Default.AutoStories)
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onSave(currentGoal.copy(
-                        yearlyGoal = yearlyGoal.toIntOrNull() ?: currentGoal.yearlyGoal,
-                        monthlyGoal = monthlyGoal.toIntOrNull() ?: currentGoal.monthlyGoal,
-                        pagesPerDay = pagesPerDay.toIntOrNull() ?: currentGoal.pagesPerDay
-                    ))
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = CyberPurple),
-                shape = RoundedCornerShape(12.dp)
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            shape = RoundedCornerShape(28.dp),
+            color = DeepVoid,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Update Goals")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = Color.White.copy(alpha = 0.5f))
+                Text("Edit Reading Goals", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                
+                DialogTextField("Books per Year", yearlyGoal, onValueChange = { yearlyGoal = it }, icon = Icons.Default.EmojiEvents, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                DialogTextField("Books per Month", monthlyGoal, onValueChange = { monthlyGoal = it }, icon = Icons.Default.CalendarMonth, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                DialogTextField("Pages per Day", pagesPerDay, onValueChange = { pagesPerDay = it }, icon = Icons.Default.AutoStories, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancel", color = Color.White.copy(alpha = 0.6f)) }
+                    Button(
+                        onClick = {
+                            onSave(ReadingGoal(
+                                yearlyGoal = yearlyGoal.toIntOrNull() ?: currentGoal.yearlyGoal,
+                                monthlyGoal = monthlyGoal.toIntOrNull() ?: currentGoal.monthlyGoal,
+                                pagesPerDay = pagesPerDay.toIntOrNull() ?: currentGoal.pagesPerDay
+                            ))
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = CyberPurple)
+                    ) {
+                        Text("Save Changes")
+                    }
+                }
             }
         }
-    )
+    }
 }

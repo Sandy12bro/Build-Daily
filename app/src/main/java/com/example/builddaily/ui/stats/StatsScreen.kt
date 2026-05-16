@@ -6,7 +6,7 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import com.example.builddaily.util.today
+
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,8 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.layout.wrapContentSize
+
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -36,7 +35,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -67,7 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.animation.animateColorAsState
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.BorderStroke
@@ -152,9 +151,9 @@ fun StatsScreen(
                         SingleChoiceSegmentedButtonRow(
                             modifier = Modifier.fillMaxWidth().height(if (isWide) 48.dp else 40.dp)
                         ) {
-                            StatsPeriod.values().forEachIndexed { index, p ->
+                            StatsPeriod.entries.forEachIndexed { index, p ->
                                 SegmentedButton(
-                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriod.values().size),
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = StatsPeriod.entries.size),
                                     onClick = { viewModel.setPeriod(p) },
                                     selected = period == p,
                                     colors = SegmentedButtonDefaults.colors(
