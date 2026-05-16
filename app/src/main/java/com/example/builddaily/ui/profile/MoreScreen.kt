@@ -110,7 +110,7 @@ fun MoreScreen(
                                 .widthIn(min = 200.dp)
 
                             MoreOption(Icons.Default.Timer, "Pomodoro Timer", "Focus sessions with break alerts", utilityModifier) { onNavigateToPomodoro() }
-                            MoreOption(Icons.AutoMirrored.Filled.List, "Mission Logs", "Manage all your daily missions", utilityModifier) { onNavigateToTodoList() }
+                            MoreOption(Icons.AutoMirrored.Filled.List, "TODO Tasks", "Manage all your daily missions", utilityModifier) { onNavigateToTodoList() }
                             MoreOption(Icons.Default.AutoAwesome, "Life Evolution", "Watch your personal tree grow", utilityModifier) { onNavigateToEvolution() }
                             MoreOption(Icons.Default.WaterDrop, "Hydration Orbit", "Track daily water intake", utilityModifier) { onNavigateToHydration() }
                             MoreOption(Icons.Default.ShoppingCart, "Wishlist Planner", "Plan your premium shopping", utilityModifier) { onNavigateToBuyList() }
@@ -119,7 +119,7 @@ fun MoreScreen(
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             MoreOption(Icons.Default.Timer, "Pomodoro Timer", "Focus sessions with break alerts") { onNavigateToPomodoro() }
-                            MoreOption(Icons.AutoMirrored.Filled.List, "Mission Logs", "Manage all your daily missions") { onNavigateToTodoList() }
+                            MoreOption(Icons.AutoMirrored.Filled.List, "TODO Tasks", "Manage all your daily missions") { onNavigateToTodoList() }
                             MoreOption(Icons.Default.AutoAwesome, "Life Evolution", "Watch your personal tree grow") { onNavigateToEvolution() }
                             MoreOption(Icons.Default.WaterDrop, "Hydration Orbit", "Track daily water intake") { onNavigateToHydration() }
                             MoreOption(Icons.Default.ShoppingCart, "Wishlist Planner", "Plan your premium shopping") { onNavigateToBuyList() }

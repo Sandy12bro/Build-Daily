@@ -3,11 +3,23 @@ package com.example.builddaily.ui.booklibrary
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.builddaily.data.model.Book
-import com.example.builddaily.data.model.BookStatus
+import com.example.builddaily.data.model.ReadingStatus
 import com.example.builddaily.data.repository.BookRepository
 import com.example.builddaily.data.repository.ReadingGoal
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+enum class SortOption(val displayName: String) {
+    TITLE("Title"),
+    AUTHOR("Author"),
+    PRIORITY("Priority"),
+    PAGES("Number of Pages"),
+    PRICE("Price"),
+    RECENT_ADDED("Recently Added"),
+    LANGUAGE("Language"),
+    CATEGORY("Category"),
+    PROGRESS("Reading Progress")
+}
 
 class BookLibraryViewModel(private val repository: BookRepository) : ViewModel() {
 
@@ -17,46 +29,55 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab = _selectedTab.asStateFlow()
 
+    private val _sortOption = MutableStateFlow(SortOption.RECENT_ADDED)
+    val sortOption = _sortOption.asStateFlow()
+
     // Optimized derived states
-    val currentlyReading = books.map { list ->
-        list.filter { it.status == BookStatus.CURRENTLY_READING }
+    val currentlyReading = combine(books, _sortOption) { list, sort ->
+        sortBooks(list.filter { it.status == ReadingStatus.READING }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val wantToRead = books.map { list ->
-        list.filter { it.status == BookStatus.WANT_TO_READ }.sortedByDescending { it.priority.level }
+    val toRead = combine(books, _sortOption) { list, sort ->
+        sortBooks(list.filter { it.status == ReadingStatus.WANT }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val completed = books.map { list ->
-        list.filter { it.status == BookStatus.COMPLETED }.sortedByDescending { it.completedDate }
+    val completed = combine(books, _sortOption) { list, sort ->
+        sortBooks(list.filter { it.status == ReadingStatus.DONE }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val favorites = books.map { list ->
-        list.filter { it.isFavorite }
+    val favouriteStatusBooks = combine(books, _sortOption) { list, sort ->
+        sortBooks(list.filter { it.status == ReadingStatus.FAVOURITE }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val archived = books.map { list ->
-        list.filter { it.status == BookStatus.ARCHIVED }
+    val favorites = combine(books, _sortOption) { list, sort ->
+        sortBooks(list.filter { it.isFavorite }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Dynamic stats to prevent ghost counts
-    val totalPagesRead = books.map { it.sumOf { book -> book.pagesRead } }
-    val completedCount = completed.map { it.size }
-    val totalBooks = books.map { it.size }
-
-    val displayedBooks = combine(
-        currentlyReading, wantToRead, completed, favorites, _selectedTab
-    ) { reading, want, done, favs, tab ->
-        when (tab) {
-            0 -> reading
-            1 -> want
-            2 -> done
-            3 -> favs
-            else -> reading
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    // Analytics
+    val totalPagesRead = books.map { list -> list.sumOf { it.pagesRead } }
+    val completedCount = completed.map { list -> list.size }
+    val activeBooksCount = currentlyReading.map { list -> list.size }
 
     fun setTab(index: Int) {
         _selectedTab.value = index
+    }
+
+    fun setSortOption(option: SortOption) {
+        _sortOption.value = option
+    }
+
+    private fun sortBooks(list: List<Book>, option: SortOption): List<Book> {
+        return when (option) {
+            SortOption.TITLE -> list.sortedBy { it.title.lowercase() }
+            SortOption.AUTHOR -> list.sortedBy { it.author.lowercase() }
+            SortOption.PRIORITY -> list.sortedByDescending { it.priority.level }
+            SortOption.PAGES -> list.sortedByDescending { it.totalPages }
+            SortOption.PRICE -> list.sortedByDescending { it.price }
+            SortOption.RECENT_ADDED -> list.sortedByDescending { it.createdAt }
+            SortOption.LANGUAGE -> list.sortedBy { it.language.lowercase() }
+            SortOption.CATEGORY -> list.sortedBy { it.genre.lowercase() }
+            SortOption.PROGRESS -> list.sortedByDescending { it.progress }
+        }
     }
 
     fun addBook(book: Book) {
@@ -67,11 +88,7 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
 
     fun updateBook(book: Book) {
         viewModelScope.launch {
-            // Enforce pagesRead limit
-            val validatedBook = book.copy(
-                pagesRead = book.pagesRead.coerceIn(0, if (book.pages > 0) book.pages else Int.MAX_VALUE)
-            )
-            repository.updateBook(validatedBook)
+            repository.updateBook(book)
         }
     }
 
@@ -81,25 +98,21 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
         }
     }
 
-    fun updateReadingGoal(goal: ReadingGoal) {
+    fun adjustPages(bookId: String, delta: Int) {
         viewModelScope.launch {
-            repository.updateReadingGoal(goal)
+            repository.adjustPages(bookId, delta)
         }
     }
 
-    fun updateProgress(book: Book, newPages: Int) {
+    fun setPagesRead(bookId: String, pages: Int) {
         viewModelScope.launch {
-            val pages = newPages.coerceIn(0, book.pages)
-            val isNewlyCompleted = pages >= book.pages && book.pages > 0 && book.status != BookStatus.COMPLETED
-            
-            val updatedBook = book.copy(
-                pagesRead = pages,
-                status = if (isNewlyCompleted) BookStatus.COMPLETED else book.status,
-                completedDate = if (isNewlyCompleted) {
-                    kotlinx.datetime.Clock.System.now().toString().substringBefore("T")
-                } else book.completedDate
-            )
-            repository.updateBook(updatedBook)
+            repository.setPagesRead(bookId, pages)
+        }
+    }
+
+    fun updateReadingGoal(goal: ReadingGoal) {
+        viewModelScope.launch {
+            repository.updateReadingGoal(goal)
         }
     }
 }

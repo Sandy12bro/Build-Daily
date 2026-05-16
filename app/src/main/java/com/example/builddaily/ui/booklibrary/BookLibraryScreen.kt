@@ -1,86 +1,33 @@
 package com.example.builddaily.ui.booklibrary
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoStories
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LocalLibrary
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Notes
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.WorkspacePremium
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.window.Dialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import kotlinx.datetime.Clock
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -88,20 +35,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.builddaily.data.model.Book
-import com.example.builddaily.data.model.BookGenre
 import com.example.builddaily.data.model.BookPriority
-import com.example.builddaily.data.model.BookStatus
-import com.example.builddaily.data.repository.BookRepository
+import com.example.builddaily.data.model.ReadingStatus
 import com.example.builddaily.data.repository.ReadingGoal
-import com.example.builddaily.ui.theme.CyberPurple
-import com.example.builddaily.ui.theme.DeepVoid
-import com.example.builddaily.ui.theme.ElectricBlue
-import com.example.builddaily.ui.theme.MintGreen
-import com.example.builddaily.ui.theme.SolarYellow
-import com.example.builddaily.util.AnimatedCurrency
-import com.example.builddaily.util.AnimatedNumber
-import com.example.builddaily.util.AnimatedPercentage
-import com.example.builddaily.util.CurrencyUtils
+import com.example.builddaily.ui.theme.*
+import com.example.builddaily.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,34 +52,18 @@ fun BookLibraryScreen(
     val selectedTab by viewModel.selectedTab.collectAsState()
     
     val currentlyReading by viewModel.currentlyReading.collectAsState()
-    val wantToRead by viewModel.wantToRead.collectAsState()
+    val toRead by viewModel.toRead.collectAsState()
     val completed by viewModel.completed.collectAsState()
-    val favorites by viewModel.favorites.collectAsState()
-    val archived by viewModel.archived.collectAsState()
-    val displayedBooks by viewModel.displayedBooks.collectAsState()
-
+    val favouriteStatusBooks by viewModel.favouriteStatusBooks.collectAsState()
     val totalPagesRead by viewModel.totalPagesRead.collectAsState(0)
     val completedCount by viewModel.completedCount.collectAsState(0)
-    val totalBooks by viewModel.totalBooks.collectAsState(0)
 
     var showAddBookDialog by remember { mutableStateOf(false) }
-    var showGoalDialog by remember { mutableStateOf(false) }
     var selectedBook by remember { mutableStateOf<Book?>(null) }
-
-    val motivationalQuotes = listOf(
-        "Reading is dreaming with open eyes 📚",
-        "Every page unlocks new wisdom ✨",
-        "Your mind is your greatest asset 🧠",
-        "Knowledge compounds over time 📖",
-        "Small steps, big transformations 🌟"
-    )
-    var currentQuote by remember { mutableStateOf(motivationalQuotes.random()) }
-
-    LaunchedEffect(books.size) {
-        if (books.isNotEmpty()) {
-            currentQuote = motivationalQuotes.random()
-        }
-    }
+    var showAnalytics by remember { mutableStateOf(false) }
+    var showGoalDialog by remember { mutableStateOf(false) }
+    var showSortMenu by remember { mutableStateOf(false) }
+    val sortOption by viewModel.sortOption.collectAsState()
 
     Scaffold(
         containerColor = DeepVoid,
@@ -149,10 +71,9 @@ fun BookLibraryScreen(
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.MenuBook, contentDescription = null, tint = CyberPurple, modifier = Modifier.size(28.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Reading Vault", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Column {
+                        Text("Reading Vault", color = Color.White, fontWeight = FontWeight.Black, fontSize = 20.sp)
+                        Text("Level up your mind 🧠", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                     }
                 },
                 navigationIcon = {
@@ -161,8 +82,27 @@ fun BookLibraryScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showGoalDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Set Goals", tint = CyberPurple)
+                    IconButton(onClick = { showSortMenu = true }) {
+                        Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort", tint = CyberPurple)
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false },
+                            containerColor = DeepVoid
+                        ) {
+                            SortOption.entries.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option.displayName, color = if (sortOption == option) CyberPurple else Color.White) },
+                                    onClick = {
+                                        viewModel.setSortOption(option)
+                                        showSortMenu = false
+                                    },
+                                    leadingIcon = { if (sortOption == option) Icon(Icons.Default.Check, contentDescription = null, tint = CyberPurple, modifier = Modifier.size(16.dp)) }
+                                )
+                            }
+                        }
+                    }
+                    IconButton(onClick = { showAnalytics = !showAnalytics }) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Analytics", tint = CyberPurple)
                     }
                 }
             )
@@ -170,9 +110,10 @@ fun BookLibraryScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddBookDialog = true },
-                containerColor = CyberPurple
+                containerColor = CyberPurple,
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add book", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Add Book", tint = Color.White)
             }
         }
     ) { padding ->
@@ -185,24 +126,34 @@ fun BookLibraryScreen(
         ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            item {
-                PremiumReadingStatsCard(
-                    totalBooks = totalBooks,
-                    completedCount = completedCount,
-                    totalPagesRead = totalPagesRead,
-                    readingGoal = readingGoal
-                )
+            // Analytics Section (Expandable)
+            if (showAnalytics) {
+                item {
+                    ReadingAnalyticsCard(
+                        completedCount = completedCount,
+                        totalReadPages = totalPagesRead,
+                        totalBooks = books.size,
+                        yearlyGoal = readingGoal.yearlyGoal
+                    )
+                }
             }
 
-            item {
-                PremiumReadingGoalCard(readingGoal = readingGoal, completedThisYear = completed.count { it.status == BookStatus.COMPLETED })
+            if (showAnalytics) {
+                item {
+                    ReadingGoalProgressCard(
+                        readingGoal = readingGoal,
+                        booksReadThisYear = completedCount,
+                        onEdit = { showGoalDialog = true }
+                    )
+                }
             }
 
+            // Tabs
             item {
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
-                    contentColor = CyberPurple,
+                    divider = {},
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
@@ -210,53 +161,78 @@ fun BookLibraryScreen(
                         )
                     }
                 ) {
-                    Tab(selected = selectedTab == 0, onClick = { viewModel.setTab(0) }, text = { Text("Reading (${currentlyReading.size})", color = if (selectedTab == 0) CyberPurple else Color.White.copy(alpha = 0.6f)) })
-                    Tab(selected = selectedTab == 1, onClick = { viewModel.setTab(1) }, text = { Text("Want (${wantToRead.size})", color = if (selectedTab == 1) ElectricBlue else Color.White.copy(alpha = 0.6f)) })
-                    Tab(selected = selectedTab == 2, onClick = { viewModel.setTab(2) }, text = { Text("Done (${completed.size})", color = if (selectedTab == 2) MintGreen else Color.White.copy(alpha = 0.6f)) })
-                    Tab(selected = selectedTab == 3, onClick = { viewModel.setTab(3) }, text = { Text("Fav (${favorites.size})", color = if (selectedTab == 3) SolarYellow else Color.White.copy(alpha = 0.6f)) })
+                    val tabData = listOf(
+                        "Reading" to currentlyReading.size,
+                        "Want" to toRead.size,
+                        "Done" to completed.size,
+                        "Fav" to favouriteStatusBooks.size
+                    )
+
+                    tabData.forEachIndexed { index, (title, count) ->
+                        val isSelected = selectedTab == index
+                        Tab(
+                            selected = isSelected,
+                            onClick = { viewModel.setTab(index) },
+                            text = {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        title,
+                                        color = if (isSelected) CyberPurple else Color.White.copy(alpha = 0.6f),
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        "($count)",
+                                        color = if (isSelected) CyberPurple else Color.White.copy(alpha = 0.4f),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
             val displayedBooks = when (selectedTab) {
                 0 -> currentlyReading
-                1 -> wantToRead
+                1 -> toRead
                 2 -> completed
-                3 -> favorites
+                3 -> favouriteStatusBooks
                 else -> currentlyReading
             }
 
             if (displayedBooks.isEmpty()) {
                 item {
-                    PremiumBookEmptyState(tab = selectedTab, quote = currentQuote)
+                    ReadingEmptyState(tab = selectedTab)
                 }
             } else {
                 items(displayedBooks, key = { it.id }) { book ->
-                    PremiumBookCard(
+                    ModernBookCard(
                         book = book,
-                        readingGoal = readingGoal,
-                        onClick = { selectedBook = book },
+                        onEdit = { selectedBook = book },
                         onToggleFavorite = { viewModel.updateBook(book.copy(isFavorite = !book.isFavorite)) },
-                        onDelete = { viewModel.deleteBook(book.id) },
-                        onUpdateProgress = { pages -> viewModel.updateProgress(book, pages) }
+                        onAdjustPages = { delta -> viewModel.adjustPages(book.id, delta) }
                     )
-                }
-            }
-
-            if (archived.isNotEmpty() && selectedTab != 3) {
-                item {
-                    Text("Archived (${archived.size})", color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
-                }
-                items(archived.take(3), key = { "archived_${it.id}" }) { book ->
-                    CompactArchivedBookCard(book = book, onRestore = { viewModel.updateBook(book.copy(status = BookStatus.WANT_TO_READ)) })
                 }
             }
 
             item { Spacer(modifier = Modifier.height(100.dp)) }
         }
+
+        if (showGoalDialog) {
+            EditReadingGoalDialog(
+                currentGoal = readingGoal,
+                onDismiss = { showGoalDialog = false },
+                onSave = { updatedGoal ->
+                    viewModel.updateReadingGoal(updatedGoal)
+                    showGoalDialog = false
+                }
+            )
+        }
     }
 
     if (showAddBookDialog) {
-        PremiumAddBookDialog(
+        AddBookDialog(
             onDismiss = { showAddBookDialog = false },
             onAdd = { book ->
                 viewModel.addBook(book)
@@ -265,919 +241,714 @@ fun BookLibraryScreen(
         )
     }
 
-    if (showGoalDialog) {
-        PremiumReadingGoalDialog(
-            currentGoal = readingGoal,
-            onDismiss = { showGoalDialog = false },
-            onSave = { goal ->
-                viewModel.updateReadingGoal(goal)
-                showGoalDialog = false
-            }
-        )
-    }
-
-    selectedBook?.let { book ->
-        PremiumBookDetailSheet(
-            book = book,
+    if (selectedBook != null) {
+        EditBookDialog(
+            book = selectedBook!!,
             onDismiss = { selectedBook = null },
             onUpdate = { updatedBook ->
                 viewModel.updateBook(updatedBook)
-                selectedBook = updatedBook
+                selectedBook = null
             },
-            onDelete = { viewModel.deleteBook(book.id); selectedBook = null }
+            onDelete = {
+                viewModel.deleteBook(selectedBook!!.id)
+                selectedBook = null
+            }
         )
     }
 }
 
 @Composable
-fun PremiumReadingStatsCard(
-    totalBooks: Int,
-    completedCount: Int,
-    totalPagesRead: Int,
-    readingGoal: ReadingGoal
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(28.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            CyberPurple.copy(alpha = 0.15f),
-                            ElectricBlue.copy(alpha = 0.1f)
-                        )
-                    )
-                )
-                .border(1.dp, CyberPurple.copy(alpha = 0.3f), RoundedCornerShape(28.dp))
-                .padding(20.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Library Stats", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
-                    Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = SolarYellow, modifier = Modifier.size(20.dp))
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatBox(label = "Total Books", value = totalBooks.toString(), color = ElectricBlue)
-                    StatBox(label = "Completed", value = completedCount.toString(), color = MintGreen)
-                    StatBox(label = "Pages Read", value = CurrencyUtils.formatIndianNumber(totalPagesRead), color = CyberPurple)
-                }
-
-                if (readingGoal.yearlyGoal > 0) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    val yearlyProgress = completedCount.toFloat() / readingGoal.yearlyGoal
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Yearly Goal: ${completedCount}/${readingGoal.yearlyGoal}", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-                        AnimatedPercentage(targetValue = yearlyProgress.coerceIn(0f, 1f), style = androidx.compose.ui.text.TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MintGreen))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun StatBox(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        AnimatedNumber(
-            targetValue = value.toIntOrNull() ?: 0,
-            style = androidx.compose.ui.text.TextStyle(fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        )
-        Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
-    }
-}
-
-@Composable
-fun PremiumReadingGoalCard(readingGoal: ReadingGoal, completedThisYear: Int) {
-    val progress = if (readingGoal.yearlyGoal > 0) completedThisYear.toFloat() / readingGoal.yearlyGoal else 0f
-    val animatedProgress by animateFloatAsState(targetValue = progress.coerceIn(0f, 1f), animationSpec = tween(1000), label = "goal")
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(brush = Brush.horizontalGradient(listOf(MintGreen.copy(alpha = 0.1f), CyberPurple.copy(alpha = 0.05f))))
-                .border(1.dp, MintGreen.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
-                .padding(20.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.TrendingUp, contentDescription = null, tint = MintGreen, modifier = Modifier.size(24.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Reading Goal", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    }
-                    if (readingGoal.yearlyGoal > 0) {
-                        AnimatedPercentage(targetValue = progress.coerceIn(0f, 1f), style = androidx.compose.ui.text.TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MintGreen))
-                    }
-                }
-
-                if (readingGoal.yearlyGoal > 0) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(14.dp)
-                            .clip(RoundedCornerShape(7.dp))
-                            .background(Color.White.copy(alpha = 0.1f))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(animatedProgress)
-                                .height(14.dp)
-                                .clip(RoundedCornerShape(7.dp))
-                                .background(brush = Brush.horizontalGradient(listOf(MintGreen, CyberPurple)))
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("$completedThisYear books read", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-                        Text("Goal: ${readingGoal.yearlyGoal} books/year", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
-                    }
-                } else {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Set your yearly reading goal to track progress!", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
-                }
-
-                if (readingGoal.monthlyGoal > 0 || readingGoal.pagesPerDay > 0) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        if (readingGoal.monthlyGoal > 0) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("${readingGoal.monthlyGoal}", color = ElectricBlue, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                                Text("Monthly Goal", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
-                            }
-                        }
-                        if (readingGoal.pagesPerDay > 0) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("${readingGoal.pagesPerDay}", color = SolarYellow, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                                Text("Pages/Day", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PremiumBookCard(
-    book: Book,
-    readingGoal: ReadingGoal,
-    onClick: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onDelete: () -> Unit,
-    onUpdateProgress: (Int) -> Unit
-) {
-    val priorityColor = Color(book.priority.colorHex)
-    val progress = if (book.pages > 0) book.pagesRead.toFloat() / book.pages else 0f
-    val animatedProgress by animateFloatAsState(targetValue = progress.coerceIn(0f, 1f), animationSpec = tween(800), label = "progress")
-
-    Card(
+fun CustomTabRow(selectedTab: Int, onTabSelected: (Int) -> Unit, tabs: List<String>) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .border(1.dp, priorityColor.copy(alpha = 0.3f), RoundedCornerShape(24.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(24.dp)
+            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            priorityColor.copy(alpha = 0.08f),
-                            Color.Transparent
-                        )
-                    )
-                )
-                .padding(16.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(priorityColor.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(book.genre.emoji, fontSize = 28.sp)
-                            if (book.pages > 0) {
-                                Text("${(progress * 100).toInt()}%", color = priorityColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                book.title.ifEmpty { "Untitled Book" },
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
-                            if (book.isFavorite) {
-                                Icon(Icons.Default.Favorite, contentDescription = "Favorite", tint = SolarYellow, modifier = Modifier.size(18.dp))
-                            }
-                        }
-
-                        if (book.author.isNotEmpty()) {
-                            Text("by ${book.author}", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp, maxLines = 1)
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            BookPriorityBadge(priority = book.priority, color = priorityColor)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(book.genre.displayName, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
-                        }
-
-                        if (book.pages > 0) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(Color.White.copy(alpha = 0.1f))
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(animatedProgress)
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp))
-                                        .background(priorityColor)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text("${book.pagesRead}/${book.pages} pages", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row {
-                        if (book.price > 0) {
-                            AnimatedCurrency(
-                                targetValue = book.price,
-                                style = androidx.compose.ui.text.TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ElectricBlue)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                        }
-                        if (book.status == BookStatus.CURRENTLY_READING && book.pages > 0) {
-                            val pagesRemaining = book.pages - book.pagesRead
-                            val daysLeft = if (readingGoal.pagesPerDay > 0) pagesRemaining / readingGoal.pagesPerDay else 0
-                            if (daysLeft > 0) {
-                                Text("$daysLeft days left", color = SolarYellow, fontSize = 12.sp, modifier = Modifier.background(SolarYellow.copy(alpha = 0.1f), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 4.dp))
-                            }
-                        }
-                    }
-
-                    Row {
-                        if (book.status == BookStatus.CURRENTLY_READING && book.pages > 0) {
-                            IconButton(onClick = { onUpdateProgress((book.pagesRead + 10).coerceAtMost(book.pages)) }, modifier = Modifier.size(32.dp).background(MintGreen.copy(alpha = 0.15f), CircleShape)) {
-                                Icon(Icons.Default.Add, contentDescription = "Add Progress", tint = MintGreen, modifier = Modifier.size(16.dp))
-                            }
-                        }
-                        IconButton(onClick = onToggleFavorite, modifier = Modifier.size(32.dp)) {
-                            Icon(if (book.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "Toggle Favorite", tint = if (book.isFavorite) SolarYellow else Color.White.copy(alpha = 0.3f), modifier = Modifier.size(18.dp))
-                        }
-                        IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BookPriorityBadge(priority: BookPriority, color: Color) {
-    Box(
-        modifier = Modifier
-            .background(color.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(priority.displayName, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-fun PremiumBookEmptyState(tab: Int, quote: String) {
-    val (title, subtitle, emoji) = when (tab) {
-        0 -> Triple("No books currently reading", "Start your reading journey today!", "📖")
-        1 -> Triple("Your reading wishlist is empty", "Add books you want to read", "📚")
-        2 -> Triple("No completed books yet", "Finish your first book to see it here", "🎉")
-        3 -> Triple("No favorite books yet", "Mark books as favorites to see them here", "❤️")
-        else -> Triple("Your library awaits", "Add your first book", "✨")
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(CyberPurple.copy(alpha = 0.3f), Color.Transparent)
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
+        tabs.forEachIndexed { index, title ->
+            val isSelected = selectedTab == index
             Box(
                 modifier = Modifier
-                    .size(70.dp)
-                    .background(CyberPurple.copy(alpha = 0.1f), CircleShape),
+                    .weight(1f)
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isSelected) CyberPurple else Color.Transparent)
+                    .clickable { onTabSelected(index) },
                 contentAlignment = Alignment.Center
             ) {
-                Text(emoji, fontSize = 35.sp)
+                Text(
+                    title,
+                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 12.sp
+                )
             }
         }
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp, textAlign = TextAlign.Center)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(subtitle, color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, textAlign = TextAlign.Center)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("\"$quote\"", color = CyberPurple.copy(alpha = 0.8f), fontSize = 13.sp, textAlign = TextAlign.Center, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
     }
 }
 
 @Composable
-fun CompactArchivedBookCard(book: Book, onRestore: () -> Unit) {
+fun ModernBookCard(
+    book: Book,
+    onEdit: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onAdjustPages: (Int) -> Unit
+) {
+    val priorityColor = Color(book.priority.colorHex)
+    val progress = book.progress
+    val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(1000), label = "bookProgress")
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEdit() }
+            .border(1.dp, priorityColor.copy(alpha = 0.2f), RoundedCornerShape(24.dp)),
+        colors = CardDefaults.cardColors(containerColor = DeepVoid.copy(alpha = 0.6f)),
+        shape = RoundedCornerShape(24.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.02f))
-                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
-                .padding(12.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row {
+                // Book Cover
+                Box(
+                    modifier = Modifier
+                        .size(60.dp, 80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(priorityColor.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (book.coverUri != null) {
+                        AsyncImage(
+                            model = book.coverUri,
+                            contentDescription = "Cover for ${book.title}",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(Icons.Default.Book, contentDescription = null, tint = priorityColor.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            book.title,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .background(priorityColor.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(book.priority.displayName.split(" ").last(), color = priorityColor, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                        }
+                    }
+                    Text(book.author.ifEmpty { "Unknown Author" }, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    
+                    if (book.tags.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            items(book.tags) { tag ->
+                                Text(
+                                    "#$tag",
+                                    color = ElectricBlue.copy(alpha = 0.6f),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        LinearProgressIndicator(
+                            progress = { animatedProgress },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            color = if (progress >= 1f) MintGreen else priorityColor,
+                            trackColor = Color.White.copy(alpha = 0.1f)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("${book.percentage}%", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(book.genre.emoji, fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(book.title.ifEmpty { "Book" }, color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Medium, maxLines = 1)
-                    Text("Archived", color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
+                Column {
+                    Text("${book.pagesRead} / ${book.totalPages} pages", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                    if (book.status == ReadingStatus.READING) {
+                        Text("${book.remainingPages} remaining", color = Color.White.copy(alpha = 0.3f), fontSize = 10.sp)
+                    }
                 }
-                TextButton(onClick = onRestore) {
-                    Text("Restore", color = ElectricBlue, fontSize = 12.sp)
+
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (book.status == ReadingStatus.READING) {
+                        QuickActionChip("-10", onClick = { onAdjustPages(-10) })
+                        QuickActionChip("+10", onClick = { onAdjustPages(10) })
+                    }
+                    
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(if (book.isFavorite) SolarYellow.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f), CircleShape)
+                    ) {
+                        Icon(
+                            if (book.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            tint = if (book.isFavorite) SolarYellow else Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onEdit,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(CyberPurple.copy(alpha = 0.1f), CircleShape)
+                            .border(1.dp, CyberPurple.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = CyberPurple, modifier = Modifier.size(18.dp))
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PremiumBookDetailSheet(
-    book: Book,
-    onDismiss: () -> Unit,
-    onUpdate: (Book) -> Unit,
-    onDelete: () -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = DeepVoid,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+fun QuickActionChip(label: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .clickable { onClick() }
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        ) {
+        Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: Int, yearlyGoal: Int) {
+    val progress = if (yearlyGoal > 0) (completedCount.toFloat() / yearlyGoal).coerceIn(0f, 1f) else 0f
+    
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Library Stats", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = SolarYellow, modifier = Modifier.size(20.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                StatColumn(totalBooks.toString(), "Total Books", ElectricBlue)
+                StatColumn(completedCount.toString(), "Completed", Color(0xFF34C759))
+                StatColumn(totalReadPages.toString(), "Pages Read", CyberPurple)
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Yearly Goal: $completedCount/$yearlyGoal", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+                Text("${(progress * 100).toInt()}%", color = Color(0xFF34C759), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun StatColumn(value: String, label: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = color, fontSize = 28.sp, fontWeight = FontWeight.Black)
+        Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+    }
+}
+
+@Composable
+fun ReadingGoalProgressCard(readingGoal: ReadingGoal, booksReadThisYear: Int, onEdit: () -> Unit) {
+    val progress = if (readingGoal.yearlyGoal > 0) (booksReadThisYear.toFloat() / readingGoal.yearlyGoal).coerceIn(0f, 1f) else 0f
+    
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(book.genre.emoji, fontSize = 40.sp)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(book.title.ifEmpty { "Book" }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                        if (book.author.isNotEmpty()) Text("by ${book.author}", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
+                    Icon(Icons.Default.TrendingUp, contentDescription = null, tint = Color(0xFF34C759), modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Reading Goal", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("${(progress * 100).toInt()}%", color = Color(0xFF34C759), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Goal", tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                     }
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFFF3B30))
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
+                color = Color(0xFF34C759),
+                trackColor = Color.White.copy(alpha = 0.05f)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("$booksReadThisYear books read", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                Text("Goal: ${readingGoal.yearlyGoal} books/year", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(readingGoal.monthlyGoal.toString(), color = ElectricBlue, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("Monthly Goal", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(readingGoal.pagesPerDay.toString(), color = SolarYellow, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("Pages/Day", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    }
                 }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(24.dp))
+@Composable
+fun AnalyticsStat(label: String, value: String, color: Color) {
+    Column {
+        Text(value, color = color, fontWeight = FontWeight.Black, fontSize = 20.sp)
+        Text(label, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp)
+    }
+}
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+@Composable
+fun ReadingEmptyState(tab: Int) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(Icons.AutoMirrored.Filled.LibraryBooks, contentDescription = null, tint = Color.White.copy(alpha = 0.1f), modifier = Modifier.size(64.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            if (tab == 0) "No active reads" else "Nothing to show here",
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+fun EditBookDialog(book: Book, onDismiss: () -> Unit, onUpdate: (Book) -> Unit, onDelete: () -> Unit) {
+    var title by remember { mutableStateOf(book.title) }
+    var author by remember { mutableStateOf(book.author) }
+    var totalPages by remember { mutableStateOf(book.totalPages.toString()) }
+    var price by remember { mutableStateOf(book.price.toString()) }
+    var genre by remember { mutableStateOf(book.genre) }
+    var language by remember { mutableStateOf(book.language) }
+    var priority by remember { mutableStateOf(book.priority) }
+    var status by remember { mutableStateOf(book.status) }
+    var notes by remember { mutableStateOf(book.notes) }
+    var coverUri by remember { mutableStateOf(book.coverUri) }
+
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            coverUri = ImageUtils.saveImageToInternalStorage(context, it)
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            shape = RoundedCornerShape(28.dp),
+            color = DeepVoid,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                DetailStatBox(label = "Pages", value = book.pages.toString(), color = ElectricBlue)
-                DetailStatBox(label = "Read", value = book.pagesRead.toString(), color = MintGreen)
-                DetailStatBox(label = "Genre", value = book.genre.displayName, color = CyberPurple)
-            }
-
-            if (book.pages > 0) {
-                Spacer(modifier = Modifier.height(20.dp))
-
-                val progress = book.pagesRead.toFloat() / book.pages
-                val animatedProgress by animateFloatAsState(targetValue = progress.coerceIn(0f, 1f), animationSpec = tween(800), label = "detail")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Edit, contentDescription = null, tint = CyberPurple, modifier = Modifier.size(28.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Edit Book", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                }
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color.White.copy(alpha = 0.1f))
+                        .size(100.dp, 130.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .clickable { launcher.launch("image/*") }
+                        .align(Alignment.CenterHorizontally),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(animatedProgress)
-                            .height(12.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(brush = Brush.horizontalGradient(listOf(MintGreen, CyberPurple)))
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    "${(progress * 100).toInt()}% complete • ${book.pages - book.pagesRead} pages remaining",
-                    color = Color.White.copy(alpha = 0.6f),
-                    fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
-
-            if (book.rating > 0) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Your Rating:", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    repeat(book.rating) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = SolarYellow, modifier = Modifier.size(20.dp))
+                    if (coverUri != null) {
+                        AsyncImage(model = coverUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(32.dp))
+                            Text("Add Cover", color = Color.White.copy(alpha = 0.2f), fontSize = 10.sp)
+                        }
                     }
                 }
-            }
 
-            if (book.notes.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Text("Notes", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(book.notes, color = Color.White, fontSize = 14.sp)
-            }
-
-            if (book.favoriteQuotes.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Favorite Quotes", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("\"${book.favoriteQuotes}\"", color = CyberPurple, fontSize = 14.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
-            }
-
-            if (book.price > 0) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Price: ", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
-                    AnimatedCurrency(targetValue = book.price, style = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ElectricBlue))
+                DialogTextField("Book Title", title, onValueChange = { title = it })
+                DialogTextField("Author", author, onValueChange = { author = it })
+                DialogTextField("Total Pages", totalPages, onValueChange = { totalPages = it }, icon = Icons.AutoMirrored.Filled.MenuBook, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                DialogTextField("Price (₹)", price, onValueChange = { price = it }, icon = Icons.Default.Payments, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                
+                DialogTextField("Genre", genre, onValueChange = { genre = it }, icon = Icons.AutoMirrored.Filled.LibraryBooks)
+                DropdownField("Language", language, listOf("English", "Hindi", "Marathi", "Other"), Icons.Default.Language) { language = it }
+                DropdownField("Priority", priority.displayName, BookPriority.entries.map { it.displayName }, Icons.Default.Flag) { name ->
+                    priority = BookPriority.entries.find { it.displayName == name } ?: BookPriority.MEDIUM
                 }
-            }
+                DropdownField("Status", status.displayName, ReadingStatus.entries.map { it.displayName }, Icons.Default.Bookmark) { name ->
+                    status = ReadingStatus.entries.find { it.displayName == name } ?: ReadingStatus.WANT
+                }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                DialogTextField("Notes", notes, onValueChange = { notes = it }, singleLine = false)
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                val statusOptions = BookStatus.entries.toList()
-                statusOptions.forEach { status ->
-                    val isSelected = book.status == status
-                    TextButton(
-                        onClick = { onUpdate(book.copy(status = status)) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
-                                if (isSelected) when (status) {
-                                    BookStatus.CURRENTLY_READING -> MintGreen
-                                    BookStatus.WANT_TO_READ -> ElectricBlue
-                                    BookStatus.COMPLETED -> CyberPurple
-                                    BookStatus.ARCHIVED -> Color.Gray
-                                }.copy(alpha = 0.15f)
-                                else Color.White.copy(alpha = 0.05f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .padding(vertical = 12.dp)
-                    ) {
-                        Text(
-                            when (status) {
-                                BookStatus.CURRENTLY_READING -> "Reading"
-                                BookStatus.WANT_TO_READ -> "Want"
-                                BookStatus.COMPLETED -> "Done"
-                                BookStatus.ARCHIVED -> "Archive"
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red.copy(alpha = 0.7f))
+                    }
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = onDismiss) {
+                            Text("Cancel", color = Color.White.copy(alpha = 0.6f))
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                if (title.isNotBlank()) {
+                                    onUpdate(book.copy(
+                                        title = title,
+                                        author = author,
+                                        totalPages = totalPages.toIntOrNull() ?: book.totalPages,
+                                        price = price.toDoubleOrNull() ?: book.price,
+                                        genre = genre,
+                                        priority = priority,
+                                        status = status,
+                                        language = language,
+                                        notes = notes,
+                                        coverUri = coverUri,
+                                        lastUpdated = Clock.System.now().toString()
+                                    ))
+                                }
                             },
-                            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f),
-                            fontSize = 12.sp
-                        )
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Save", color = CyberPurple, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        }
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun DetailStatBox(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = color, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
-        Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+fun TagChip(tag: String, onRemove: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(4.dp)
+            .background(ElectricBlue.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .border(1.dp, ElectricBlue.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(tag, color = ElectricBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                Icons.Default.Close,
+                contentDescription = null,
+                tint = ElectricBlue,
+                modifier = Modifier.size(10.dp).clickable { onRemove() }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun PriorityChip(priority: BookPriority, isSelected: Boolean, onClick: () -> Unit) {
+    val color = Color(priority.colorHex)
+    Box(
+        modifier = Modifier
+            .height(36.dp)
+            .background(if (isSelected) color.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
+            .border(if (isSelected) 1.dp else 0.dp, color, RoundedCornerShape(10.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            priority.displayName.split(" ").last(),
+            color = if (isSelected) color else Color.White.copy(alpha = 0.4f),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
-fun PremiumAddBookDialog(onDismiss: () -> Unit, onAdd: (Book) -> Unit) {
+fun AddBookDialog(onDismiss: () -> Unit, onAdd: (Book) -> Unit) {
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
+    var totalPages by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
-    var pages by remember { mutableStateOf("") }
-    var genre by remember { mutableStateOf(BookGenre.OTHER) }
+    var genre by remember { mutableStateOf("") }
+    var language by remember { mutableStateOf("English") }
     var priority by remember { mutableStateOf(BookPriority.MEDIUM) }
-    var status by remember { mutableStateOf(BookStatus.WANT_TO_READ) }
+    var status by remember { mutableStateOf(ReadingStatus.WANT) }
     var notes by remember { mutableStateOf("") }
-    var showGenreDropdown by remember { mutableStateOf(false) }
-    var showPriorityDropdown by remember { mutableStateOf(false) }
-    var showStatusDropdown by remember { mutableStateOf(false) }
+    var coverUri by remember { mutableStateOf<String?>(null) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DeepVoid,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.MenuBook, contentDescription = null, tint = CyberPurple)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Add Book", color = Color.White, fontWeight = FontWeight.Bold)
-            }
-        },
-        text = {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                item {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Book Title") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = author,
-                        onValueChange = { author = it },
-                        label = { Text("Author") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = pages,
-                        onValueChange = { pages = it },
-                        label = { Text("Total Pages") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.Book, contentDescription = null, tint = CyberPurple) }
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = price,
-                        onValueChange = { price = it },
-                        label = { Text("Price (₹)") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ElectricBlue) }
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = genre.displayName,
-                        onValueChange = {},
-                        label = { Text("Genre") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = { showGenreDropdown = true }) {
-                                Text(genre.emoji, fontSize = 18.sp)
-                            }
-                        }
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = priority.displayName,
-                        onValueChange = {},
-                        label = { Text("Priority") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = { showPriorityDropdown = true }) {
-                                Icon(Icons.Default.Flag, contentDescription = null, tint = CyberPurple)
-                            }
-                        }
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = status.displayName,
-                        onValueChange = {},
-                        label = { Text("Status") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = { showStatusDropdown = true }) {
-                                Icon(Icons.Default.Bookmark, contentDescription = null, tint = CyberPurple)
-                            }
-                        }
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = notes,
-                        onValueChange = { notes = it },
-                        label = { Text("Notes") },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 2
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val newBook = Book(
-                        title = title,
-                        author = author,
-                        price = price.toDoubleOrNull() ?: 0.0,
-                        pages = pages.toIntOrNull() ?: 0,
-                        genre = genre,
-                        priority = priority,
-                        status = status,
-                        notes = notes
-                    )
-                    onAdd(newBook)
-                },
-                enabled = title.isNotBlank()
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            coverUri = ImageUtils.saveImageToInternalStorage(context, it)
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            shape = RoundedCornerShape(28.dp),
+            color = DeepVoid,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Add Book", color = CyberPurple, fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = Color.White.copy(alpha = 0.5f))
-            }
-        }
-    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.AutoStories, contentDescription = null, tint = CyberPurple, modifier = Modifier.size(28.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Add Book", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                }
 
-    if (showGenreDropdown) {
-        GenreSelectionDialog(
-            genres = BookGenre.entries.toList(),
-            selected = genre,
-            onSelect = {
-                genre = it
-                showGenreDropdown = false
-            },
-            onDismiss = { showGenreDropdown = false }
-        )
-    }
+                Box(
+                    modifier = Modifier
+                        .size(100.dp, 130.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .clickable { launcher.launch("image/*") }
+                        .align(Alignment.CenterHorizontally),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (coverUri != null) {
+                        AsyncImage(model = coverUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(32.dp))
+                            Text("Add Cover", color = Color.White.copy(alpha = 0.2f), fontSize = 10.sp)
+                        }
+                    }
+                }
 
-    if (showPriorityDropdown) {
-        BookPrioritySelectionDialog(
-            priorities = BookPriority.entries.toList(),
-            selected = priority,
-            onSelect = {
-                priority = it
-                showPriorityDropdown = false
-            },
-            onDismiss = { showPriorityDropdown = false }
-        )
-    }
+                DialogTextField("Book Title", title, onValueChange = { title = it })
+                DialogTextField("Author", author, onValueChange = { author = it })
+                DialogTextField("Total Pages", totalPages, onValueChange = { totalPages = it }, icon = Icons.AutoMirrored.Filled.MenuBook, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                DialogTextField("Price (₹)", price, onValueChange = { price = it }, icon = Icons.Default.Payments, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                
+                DialogTextField("Genre", genre, onValueChange = { genre = it }, icon = Icons.AutoMirrored.Filled.LibraryBooks)
+                DropdownField("Language", language, listOf("English", "Hindi", "Marathi", "Other"), Icons.Default.Language) { language = it }
+                DropdownField("Priority", priority.displayName, BookPriority.entries.map { it.displayName }, Icons.Default.Flag) { name ->
+                    priority = BookPriority.entries.find { it.displayName == name } ?: BookPriority.MEDIUM
+                }
+                DropdownField("Status", status.displayName, ReadingStatus.entries.map { it.displayName }, Icons.Default.Bookmark) { name ->
+                    status = ReadingStatus.entries.find { it.displayName == name } ?: ReadingStatus.WANT
+                }
 
-    if (showStatusDropdown) {
-        BookStatusSelectionDialog(
-            statuses = BookStatus.entries.toList(),
-            selected = status,
-            onSelect = {
-                status = it
-                showStatusDropdown = false
-            },
-            onDismiss = { showStatusDropdown = false }
-        )
-    }
-}
+                DialogTextField("Notes", notes, onValueChange = { notes = it }, singleLine = false)
 
-@Composable
-fun GenreSelectionDialog(
-    genres: List<BookGenre>,
-    selected: BookGenre,
-    onSelect: (BookGenre) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DeepVoid,
-        title = { Text("Select Genre", color = Color.White) },
-        text = {
-            LazyColumn {
-                items(genres.size) { index ->
-                    val genre = genres[index]
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(genre) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", color = Color.White.copy(alpha = 0.6f))
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = {
+                            if (title.isNotBlank()) {
+                                onAdd(Book(
+                                    title = title,
+                                    author = author,
+                                    totalPages = totalPages.toIntOrNull() ?: 0,
+                                    price = price.toDoubleOrNull() ?: 0.0,
+                                    genre = genre,
+                                    priority = priority,
+                                    status = status,
+                                    language = language,
+                                    notes = notes,
+                                    coverUri = coverUri
+                                ))
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text(genre.emoji, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            genre.displayName,
-                            color = if (genre == selected) CyberPurple else Color.White,
-                            fontWeight = if (genre == selected) FontWeight.Bold else FontWeight.Normal
-                        )
+                        Text("Add Book", color = CyberPurple, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = Color.White.copy(alpha = 0.5f)) }
         }
-    )
+    }
 }
 
 @Composable
-fun BookPrioritySelectionDialog(
-    priorities: List<BookPriority>,
-    selected: BookPriority,
-    onSelect: (BookPriority) -> Unit,
-    onDismiss: () -> Unit
+fun DialogTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: ImageVector? = null,
+    singleLine: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DeepVoid,
-        title = { Text("Select Priority", color = Color.White) },
-        text = {
-            LazyColumn {
-                items(priorities.size) { index ->
-                    val priority = priorities[index]
-                    val color = Color(priority.colorHex)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(priority) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(12.dp).background(color, CircleShape))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            priority.displayName,
-                            color = if (priority == selected) color else Color.White,
-                            fontWeight = if (priority == selected) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        leadingIcon = icon?.let { imageVector -> { Icon(imageVector, contentDescription = null, tint = CyberPurple.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) } },
+        singleLine = singleLine,
+        keyboardOptions = keyboardOptions,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = CyberPurple,
+            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+            focusedLabelColor = CyberPurple,
+            unfocusedLabelColor = Color.White.copy(alpha = 0.4f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownField(label: String, selectedValue: String, options: List<String>, icon: ImageVector, onSelect: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = selectedValue,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            leadingIcon = { Icon(icon, contentDescription = null, tint = CyberPurple.copy(alpha = 0.7f), modifier = Modifier.size(20.dp)) },
+            trailingIcon = { 
+                val emoji = when(label) {
+                    "Genre" -> "📚"
+                    "Priority" -> "🚩"
+                    "Status" -> "🔖"
+                    else -> ""
                 }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = Color.White.copy(alpha = 0.5f)) }
-        }
-    )
-}
-
-@Composable
-fun BookStatusSelectionDialog(
-    statuses: List<BookStatus>,
-    selected: BookStatus,
-    onSelect: (BookStatus) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DeepVoid,
-        title = { Text("Select Status", color = Color.White) },
-        text = {
-            LazyColumn {
-                items(statuses.size) { index ->
-                    val status = statuses[index]
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(status) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            status.displayName,
-                            color = if (status == selected) CyberPurple else Color.White,
-                            fontWeight = if (status == selected) FontWeight.Bold else FontWeight.Normal
-                        )
+                Text(emoji, modifier = Modifier.padding(end = 8.dp))
+            },
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = CyberPurple,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                focusedLabelColor = CyberPurple,
+                unfocusedLabelColor = Color.White.copy(alpha = 0.4f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = DeepVoid
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option, color = Color.White) },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
                     }
-                }
+                )
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = Color.White.copy(alpha = 0.5f)) }
         }
-    )
+    }
 }
 
 @Composable
-fun PremiumReadingGoalDialog(
-    currentGoal: ReadingGoal,
-    onDismiss: () -> Unit,
-    onSave: (ReadingGoal) -> Unit
-) {
+fun EditReadingGoalDialog(currentGoal: ReadingGoal, onDismiss: () -> Unit, onSave: (ReadingGoal) -> Unit) {
     var yearlyGoal by remember { mutableStateOf(currentGoal.yearlyGoal.toString()) }
     var monthlyGoal by remember { mutableStateOf(currentGoal.monthlyGoal.toString()) }
     var pagesPerDay by remember { mutableStateOf(currentGoal.pagesPerDay.toString()) }
@@ -1185,60 +956,28 @@ fun PremiumReadingGoalDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = DeepVoid,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = CyberPurple)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Reading Goals", color = Color.White, fontWeight = FontWeight.Bold)
-            }
-        },
+        shape = RoundedCornerShape(28.dp),
+        title = { Text("Reading Targets 🎯", color = Color.White, fontWeight = FontWeight.Black) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = yearlyGoal,
-                    onValueChange = { yearlyGoal = it },
-                    label = { Text("Yearly Goal (books)") },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = CyberPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.LocalLibrary, contentDescription = null, tint = CyberPurple) }
-                )
-                OutlinedTextField(
-                    value = monthlyGoal,
-                    onValueChange = { monthlyGoal = it },
-                    label = { Text("Monthly Goal (books)") },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MintGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.AutoStories, contentDescription = null, tint = MintGreen) }
-                )
-                OutlinedTextField(
-                    value = pagesPerDay,
-                    onValueChange = { pagesPerDay = it },
-                    label = { Text("Pages per Day") },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = SolarYellow, unfocusedBorderColor = Color.White.copy(alpha = 0.2f)),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null, tint = SolarYellow) }
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                DialogTextField("Yearly Goal (Books)", yearlyGoal, onValueChange = { yearlyGoal = it }, icon = Icons.Default.EmojiEvents)
+                DialogTextField("Monthly Goal (Books)", monthlyGoal, onValueChange = { monthlyGoal = it }, icon = Icons.Default.CalendarMonth)
+                DialogTextField("Daily Goal (Pages)", pagesPerDay, onValueChange = { pagesPerDay = it }, icon = Icons.Default.AutoStories)
             }
         },
         confirmButton = {
-            TextButton(
+            Button(
                 onClick = {
-                    onSave(
-                        ReadingGoal(
-                            yearlyGoal = yearlyGoal.toIntOrNull() ?: 0,
-                            monthlyGoal = monthlyGoal.toIntOrNull() ?: 0,
-                            pagesPerDay = pagesPerDay.toIntOrNull() ?: 0
-                        )
-                    )
-                }
+                    onSave(currentGoal.copy(
+                        yearlyGoal = yearlyGoal.toIntOrNull() ?: currentGoal.yearlyGoal,
+                        monthlyGoal = monthlyGoal.toIntOrNull() ?: currentGoal.monthlyGoal,
+                        pagesPerDay = pagesPerDay.toIntOrNull() ?: currentGoal.pagesPerDay
+                    ))
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = CyberPurple),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Save Goals", color = CyberPurple, fontWeight = FontWeight.Bold)
+                Text("Update Goals")
             }
         },
         dismissButton = {
