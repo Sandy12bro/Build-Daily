@@ -46,6 +46,5 @@ enum class BookPriority(val displayName: String, val level: Int, val colorHex: L
 enum class ReadingStatus(val displayName: String) {
     READING("Reading"),
     WANT("Want to Read"),
-    DONE("Done"),
-    FAVOURITE("Favourite")
+    DONE("Done")
 }

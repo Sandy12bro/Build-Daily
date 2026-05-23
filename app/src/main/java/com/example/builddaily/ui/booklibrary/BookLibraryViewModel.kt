@@ -46,7 +46,7 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val favouriteStatusBooks = combine(books, _sortOption) { list, sort ->
-        sortBooks(list.filter { it.status == ReadingStatus.FAVOURITE }, sort)
+        sortBooks(list.filter { it.isFavorite }, sort)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
