@@ -87,6 +87,27 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
         }.sumOf { it.pagesRead }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val aggregatedCompletedBooks = combine(books, _selectedDate, _viewMode) { bookList, date, mode ->
+        bookList.filter { book ->
+            if (book.status == ReadingStatus.DONE && book.completedDate != null) {
+                try {
+                    val recordDate = LocalDate.parse(book.completedDate)
+                    when (mode) {
+                        ReadingViewMode.DAY -> recordDate == date
+                        ReadingViewMode.WEEK -> {
+                            val diff = recordDate.daysUntil(date)
+                            diff in 0..6
+                        }
+                        ReadingViewMode.MONTH -> recordDate.year == date.year && recordDate.month == date.month
+                        ReadingViewMode.YEAR -> recordDate.year == date.year
+                    }
+                } catch(e: Exception) { false }
+            } else {
+                false
+            }
+        }.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     fun setSelectedDate(date: LocalDate) {
         _selectedDate.value = date
     }

@@ -66,6 +66,7 @@ fun BookLibraryScreen(
     val selectedDate by viewModel.selectedDate.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
     val aggregatedPages by viewModel.aggregatedPages.collectAsState(0)
+    val aggregatedCompletedBooks by viewModel.aggregatedCompletedBooks.collectAsState(0)
 
     var showAddBookDialog by remember { mutableStateOf(false) }
     var selectedBook by remember { mutableStateOf<Book?>(null) }
@@ -146,6 +147,7 @@ fun BookLibraryScreen(
                         selectedDate = selectedDate,
                         viewMode = viewMode,
                         aggregatedPages = aggregatedPages,
+                        aggregatedCompletedBooks = aggregatedCompletedBooks,
                         onModeChange = { viewModel.setViewMode(it) },
                         onOpenDatePicker = { showDatePicker = true }
                     )
@@ -506,6 +508,7 @@ fun ReadingHistoryNavigatorCard(
     selectedDate: LocalDate,
     viewMode: ReadingViewMode,
     aggregatedPages: Int,
+    aggregatedCompletedBooks: Int,
     onModeChange: (ReadingViewMode) -> Unit,
     onOpenDatePicker: () -> Unit
 ) {
@@ -546,9 +549,15 @@ fun ReadingHistoryNavigatorCard(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("$aggregatedPages", color = CyberPurple, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                    Text("pages read", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("$aggregatedCompletedBooks", color = Color(0xFF34C759), fontSize = 28.sp, fontWeight = FontWeight.Black)
+                        Text("completed", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("$aggregatedPages", color = CyberPurple, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                        Text("pages read", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    }
                 }
             }
 
