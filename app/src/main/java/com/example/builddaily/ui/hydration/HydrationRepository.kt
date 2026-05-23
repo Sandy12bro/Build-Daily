@@ -59,15 +59,31 @@ class HydrationRepository(val context: Context) {
 
     fun getStats(): HydrationStats {
         val statsJson = prefs.getString("stats", null)
-        return if (statsJson != null) {
+        val stats = if (statsJson != null) {
             try {
-                json.decodeFromString(statsJson)
+                json.decodeFromString<HydrationStats>(statsJson)
             } catch (e: Exception) {
                 HydrationStats()
             }
         } else {
             HydrationStats()
         }
+        
+        // Dynamically adjust streak display to 0 if streak is broken (gap > 1 day)
+        if (stats.lastLogDateStr.isNotEmpty() && stats.streakDays > 0) {
+            try {
+                val todayStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+                val todayDate = LocalDate.parse(todayStr)
+                val lastDate = LocalDate.parse(stats.lastLogDateStr)
+                val diff = lastDate.daysUntil(todayDate)
+                if (diff > 1 || diff < 0) {
+                    return stats.copy(streakDays = 0)
+                }
+            } catch (e: Exception) {
+                // Ignore parse errors
+            }
+        }
+        return stats
     }
 
     private fun saveStats(stats: HydrationStats) {
