@@ -8,6 +8,11 @@ import com.example.builddaily.data.repository.BookRepository
 import com.example.builddaily.data.repository.ReadingGoal
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.daysUntil
 
 enum class SortOption(val displayName: String) {
     TITLE("Title"),
@@ -53,6 +58,30 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
     // Analytics
     val totalPagesRead = books.map { list -> list.sumOf { it.pagesRead } }
     val completedCount = completed.map { list -> list.size }
+
+    val readingLogs = repository.readingLogs
+
+    val todayPages = readingLogs.map { logs ->
+        val todayStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+        logs.filter { it.dateStr == todayStr }.sumOf { it.pagesRead }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val weekPages = readingLogs.map { logs ->
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        logs.filter { 
+            try {
+                val recordDate = LocalDate.parse(it.dateStr)
+                recordDate.daysUntil(today) in 0..6
+            } catch(e: Exception) { false }
+        }.sumOf { it.pagesRead }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val monthPages = readingLogs.map { logs ->
+        val todayStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+        val currentMonth = todayStr.substring(0, 7) // YYYY-MM
+        logs.filter { it.dateStr.startsWith(currentMonth) }.sumOf { it.pagesRead }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
 
     fun setTab(index: Int) {
         _selectedTab.value = index

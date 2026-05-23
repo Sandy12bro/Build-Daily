@@ -57,6 +57,10 @@ fun BookLibraryScreen(
     val favouriteStatusBooks by viewModel.favouriteStatusBooks.collectAsState()
     val totalPagesRead by viewModel.totalPagesRead.collectAsState(0)
     val completedCount by viewModel.completedCount.collectAsState(0)
+    
+    val todayPages by viewModel.todayPages.collectAsState(0)
+    val weekPages by viewModel.weekPages.collectAsState(0)
+    val monthPages by viewModel.monthPages.collectAsState(0)
 
     var showAddBookDialog by remember { mutableStateOf(false) }
     var selectedBook by remember { mutableStateOf<Book?>(null) }
@@ -133,7 +137,10 @@ fun BookLibraryScreen(
                         completedCount = completedCount,
                         totalReadPages = totalPagesRead,
                         totalBooks = books.size,
-                        yearlyGoal = readingGoal.yearlyGoal
+                        yearlyGoal = readingGoal.yearlyGoal,
+                        todayPages = todayPages,
+                        weekPages = weekPages,
+                        monthPages = monthPages
                     )
                 }
             }
@@ -209,9 +216,11 @@ fun BookLibraryScreen(
                 items(displayedBooks, key = { it.id }) { book ->
                     ModernBookCard(
                         book = book,
+                        pagesPerDay = readingGoal.pagesPerDay,
                         onEdit = { selectedBook = book },
                         onToggleFavorite = { viewModel.updateBook(book.copy(isFavorite = !book.isFavorite)) },
-                        onAdjustPages = { delta -> viewModel.adjustPages(book.id, delta) }
+                        onAdjustPages = { delta -> viewModel.adjustPages(book.id, delta) },
+                        onSetPages = { pages -> viewModel.setPagesRead(book.id, pages) }
                     )
                 }
             }
@@ -260,10 +269,13 @@ fun BookLibraryScreen(
 @Composable
 fun ModernBookCard(
     book: Book,
+    pagesPerDay: Int,
     onEdit: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onAdjustPages: (Int) -> Unit
+    onAdjustPages: (Int) -> Unit,
+    onSetPages: (Int) -> Unit
 ) {
+    var showCustomPagesDialog by remember { mutableStateOf(false) }
     val priorityColor = Color(book.priority.colorHex)
     val progress = book.progress
     val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(1000), label = "bookProgress")
@@ -363,7 +375,8 @@ fun ModernBookCard(
                 Column {
                     Text("${book.pagesRead} / ${book.totalPages} pages", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
                     if (book.status == ReadingStatus.READING) {
-                        Text("${book.remainingPages} remaining", color = Color.White.copy(alpha = 0.3f), fontSize = 10.sp)
+                        val daysLeft = if (pagesPerDay > 0) kotlin.math.ceil(book.remainingPages.toDouble() / pagesPerDay).toInt() else 0
+                        Text("${book.remainingPages} remaining • ~${daysLeft} days left", color = Color.White.copy(alpha = 0.3f), fontSize = 10.sp)
                     }
                 }
 
@@ -371,6 +384,7 @@ fun ModernBookCard(
                     if (book.status == ReadingStatus.READING) {
                         QuickActionChip("-10", onClick = { onAdjustPages(-10) })
                         QuickActionChip("+10", onClick = { onAdjustPages(10) })
+                        QuickActionChip("✏️", onClick = { showCustomPagesDialog = true })
                     }
                     
                     IconButton(
@@ -400,6 +414,39 @@ fun ModernBookCard(
             }
         }
     }
+
+    if (showCustomPagesDialog) {
+        CustomPagesDialog(
+            currentPages = book.pagesRead,
+            totalPages = book.totalPages,
+            onDismiss = { showCustomPagesDialog = false },
+            onSave = { pages ->
+                onSetPages(pages)
+                showCustomPagesDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun CustomPagesDialog(currentPages: Int, totalPages: Int, onDismiss: () -> Unit, onSave: (Int) -> Unit) {
+    var pagesInput by remember { mutableStateOf(currentPages.toString()) }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = DeepVoid,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        ) {
+            Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Update Progress", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                DialogTextField("Pages Read (Total: $totalPages)", pagesInput, onValueChange = { pagesInput = it }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text("Cancel", color = Color.White.copy(alpha = 0.6f)) }
+                    Button(onClick = { onSave(pagesInput.toIntOrNull() ?: currentPages) }, colors = ButtonDefaults.buttonColors(containerColor = CyberPurple)) { Text("Save") }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -417,7 +464,7 @@ fun QuickActionChip(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: Int, yearlyGoal: Int) {
+fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: Int, yearlyGoal: Int, todayPages: Int, weekPages: Int, monthPages: Int) {
     val progress = if (yearlyGoal > 0) (completedCount.toFloat() / yearlyGoal).coerceIn(0f, 1f) else 0f
     
     Card(
@@ -452,6 +499,19 @@ fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: I
             ) {
                 Text("Yearly Goal: $completedCount/$yearlyGoal", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                 Text("${(progress * 100).toInt()}%", color = Color(0xFF34C759), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            Divider(color = Color.White.copy(alpha = 0.1f))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text("Pages Read Stats", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                StatColumn(todayPages.toString(), "Today", Color(0xFF06B6D4))
+                StatColumn(weekPages.toString(), "This Week", Color(0xFF06B6D4))
+                StatColumn(monthPages.toString(), "This Month", Color(0xFF06B6D4))
             }
         }
     }

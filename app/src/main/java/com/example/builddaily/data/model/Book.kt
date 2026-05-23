@@ -48,3 +48,12 @@ enum class ReadingStatus(val displayName: String) {
     WANT("Want to Read"),
     DONE("Done")
 }
+
+@Serializable
+data class ReadingLogRecord(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val bookId: String,
+    val pagesRead: Int,
+    val dateStr: String,
+    val timestamp: Long
+)

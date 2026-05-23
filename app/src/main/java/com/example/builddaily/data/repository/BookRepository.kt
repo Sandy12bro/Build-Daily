@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.datetime.Clock
-
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import com.example.builddaily.data.model.ReadingLogRecord
 class BookRepository(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("book_library_prefs", Context.MODE_PRIVATE)
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -22,6 +24,9 @@ class BookRepository(context: Context) {
     private val _readingGoal = MutableStateFlow(loadReadingGoal())
     val readingGoal: StateFlow<ReadingGoal> = _readingGoal.asStateFlow()
 
+    private val _readingLogs = MutableStateFlow<List<ReadingLogRecord>>(loadReadingLogs())
+    val readingLogs: StateFlow<List<ReadingLogRecord>> = _readingLogs.asStateFlow()
+
     private fun loadBooks(): List<Book> {
         val jsonStr = prefs.getString("books", "[]") ?: "[]"
         return try { json.decodeFromString<List<Book>>(jsonStr) } catch (e: Exception) { emptyList() }
@@ -30,6 +35,32 @@ class BookRepository(context: Context) {
     private fun saveBooks(books: List<Book>) {
         prefs.edit().putString("books", json.encodeToString(books)).apply()
         _books.value = books
+    }
+
+    private fun loadReadingLogs(): List<ReadingLogRecord> {
+        val jsonStr = prefs.getString("reading_logs", "[]") ?: "[]"
+        return try { json.decodeFromString<List<ReadingLogRecord>>(jsonStr) } catch (e: Exception) { emptyList() }
+    }
+
+    private fun saveReadingLogs(logs: List<ReadingLogRecord>) {
+        prefs.edit().putString("reading_logs", json.encodeToString(logs)).apply()
+        _readingLogs.value = logs
+    }
+
+    private fun addReadingLog(bookId: String, pagesDelta: Int) {
+        if (pagesDelta <= 0) return
+        val dateStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+        val record = ReadingLogRecord(
+            bookId = bookId,
+            pagesRead = pagesDelta,
+            dateStr = dateStr,
+            timestamp = Clock.System.now().toEpochMilliseconds()
+        )
+        val logs = _readingLogs.value.toMutableList()
+        logs.add(0, record)
+        // Keep last 500 records
+        val trimmed = if (logs.size > 500) logs.take(500) else logs
+        saveReadingLogs(trimmed)
     }
 
     private fun loadReadingGoal(): ReadingGoal {
@@ -69,23 +100,33 @@ class BookRepository(context: Context) {
     }
 
     fun adjustPages(id: String, delta: Int) {
+        var actualDelta = 0
         val updated = _books.value.map {
             if (it.id == id) {
                 val newPagesRead = (it.pagesRead + delta).coerceIn(0, it.totalPages)
+                actualDelta = newPagesRead - it.pagesRead
                 updateBookProgress(it, newPagesRead)
             } else it
         }
         saveBooks(updated)
+        if (actualDelta > 0) {
+            addReadingLog(id, actualDelta)
+        }
     }
 
     fun setPagesRead(id: String, pages: Int) {
+        var actualDelta = 0
         val updated = _books.value.map {
             if (it.id == id) {
                 val newPagesRead = pages.coerceIn(0, it.totalPages)
+                actualDelta = newPagesRead - it.pagesRead
                 updateBookProgress(it, newPagesRead)
             } else it
         }
         saveBooks(updated)
+        if (actualDelta > 0) {
+            addReadingLog(id, actualDelta)
+        }
     }
 
     fun updateReadingGoal(goal: ReadingGoal) {
