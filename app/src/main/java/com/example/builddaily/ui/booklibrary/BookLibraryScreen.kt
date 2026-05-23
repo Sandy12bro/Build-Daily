@@ -151,20 +151,11 @@ fun BookLibraryScreen(
                     )
                 }
                 item {
-                    ReadingAnalyticsCard(
-                        completedCount = completedCount,
-                        totalReadPages = totalPagesRead,
-                        totalBooks = books.size,
-                        yearlyGoal = readingGoal.yearlyGoal
-                    )
-                }
-            }
-
-            if (showAnalytics) {
-                item {
                     ReadingGoalProgressCard(
                         readingGoal = readingGoal,
                         booksReadThisYear = completedCount,
+                        totalBooks = books.size,
+                        totalPagesRead = totalPagesRead,
                         onEdit = { showGoalDialog = true }
                     )
                 }
@@ -404,52 +395,58 @@ fun ModernBookCard(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text("${book.pagesRead} / ${book.totalPages} pages", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                    if (book.status == ReadingStatus.READING) {
-                        val daysLeft = if (pagesPerDay > 0) kotlin.math.ceil(book.remainingPages.toDouble() / pagesPerDay).toInt() else 0
-                        Text("${book.remainingPages} remaining • ~${daysLeft} days left", color = Color.White.copy(alpha = 0.3f), fontSize = 10.sp)
-                    }
+                Text("${book.pagesRead} / ${book.totalPages} pages", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                if (book.status == ReadingStatus.READING) {
+                    val daysLeft = if (pagesPerDay > 0) kotlin.math.ceil(book.remainingPages.toDouble() / pagesPerDay).toInt() else 0
+                    Text("${book.remainingPages} left • ~${daysLeft}d", color = Color.White.copy(alpha = 0.3f), fontSize = 10.sp)
                 }
+            }
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (book.status == ReadingStatus.READING) {
-                        QuickActionChip("-10", onClick = { onAdjustPages(-10) })
-                        QuickActionChip("+10", onClick = { onAdjustPages(10) })
-                        QuickActionChip("✏️", onClick = { showCustomPagesDialog = true })
-                    }
-                    
-                    IconButton(
-                        onClick = onToggleFavorite,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(if (book.isFavorite) SolarYellow.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f), CircleShape)
-                    ) {
-                        Icon(
-                            if (book.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            tint = if (book.isFavorite) SolarYellow else Color.White.copy(alpha = 0.3f),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+            Spacer(modifier = Modifier.height(12.dp))
 
-                    IconButton(
-                        onClick = onEdit,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(CyberPurple.copy(alpha = 0.1f), CircleShape)
-                            .border(1.dp, CyberPurple.copy(alpha = 0.2f), CircleShape)
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = CyberPurple, modifier = Modifier.size(18.dp))
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (book.status == ReadingStatus.READING) {
+                    QuickActionChip("-10", onClick = { onAdjustPages(-10) })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    QuickActionChip("+10", onClick = { onAdjustPages(10) })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    QuickActionChip("✏️", onClick = { showCustomPagesDialog = true })
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+                
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(if (book.isFavorite) SolarYellow.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f), CircleShape)
+                ) {
+                    Icon(
+                        if (book.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        tint = if (book.isFavorite) SolarYellow else Color.White.copy(alpha = 0.3f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = onEdit,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(CyberPurple.copy(alpha = 0.1f), CircleShape)
+                        .border(1.dp, CyberPurple.copy(alpha = 0.2f), CircleShape)
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = CyberPurple, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -500,47 +497,6 @@ fun QuickActionChip(label: String, onClick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: Int, yearlyGoal: Int) {
-    val progress = if (yearlyGoal > 0) (completedCount.toFloat() / yearlyGoal).coerceIn(0f, 1f) else 0f
-    
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Library Stats", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = SolarYellow, modifier = Modifier.size(20.dp))
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                StatColumn(totalBooks.toString(), "Total Books", ElectricBlue)
-                StatColumn(completedCount.toString(), "Completed", Color(0xFF34C759))
-                StatColumn(totalReadPages.toString(), "Pages Read", CyberPurple)
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Yearly Goal: $completedCount/$yearlyGoal", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
-                Text("${(progress * 100).toInt()}%", color = Color(0xFF34C759), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-        }
     }
 }
 
@@ -627,15 +583,7 @@ fun ReadingHistoryNavigatorCard(
 }
 
 @Composable
-fun StatColumn(value: String, label: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = color, fontSize = 28.sp, fontWeight = FontWeight.Black)
-        Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
-    }
-}
-
-@Composable
-fun ReadingGoalProgressCard(readingGoal: ReadingGoal, booksReadThisYear: Int, onEdit: () -> Unit) {
+fun ReadingGoalProgressCard(readingGoal: ReadingGoal, booksReadThisYear: Int, totalBooks: Int, totalPagesRead: Int, onEdit: () -> Unit) {
     val progress = if (readingGoal.yearlyGoal > 0) (booksReadThisYear.toFloat() / readingGoal.yearlyGoal).coerceIn(0f, 1f) else 0f
     
     Card(
@@ -692,8 +640,12 @@ fun ReadingGoalProgressCard(readingGoal: ReadingGoal, booksReadThisYear: Int, on
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(readingGoal.monthlyGoal.toString(), color = ElectricBlue, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                        Text("Monthly Goal", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                        Text(totalBooks.toString(), color = ElectricBlue, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("Total Books", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(totalPagesRead.toString(), color = CyberPurple, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("Total Pages", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(readingGoal.pagesPerDay.toString(), color = SolarYellow, fontSize = 24.sp, fontWeight = FontWeight.Bold)
