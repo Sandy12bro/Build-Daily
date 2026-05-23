@@ -26,18 +26,23 @@ import androidx.compose.ui.window.Dialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDate
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.builddaily.data.model.Book
 import com.example.builddaily.data.model.BookPriority
 import com.example.builddaily.data.model.ReadingStatus
 import com.example.builddaily.data.repository.ReadingGoal
+import com.example.builddaily.util.ImageUtils
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.builddaily.ui.theme.*
 import com.example.builddaily.util.*
 
@@ -58,14 +63,18 @@ fun BookLibraryScreen(
     val totalPagesRead by viewModel.totalPagesRead.collectAsState(0)
     val completedCount by viewModel.completedCount.collectAsState(0)
     
-    val todayPages by viewModel.todayPages.collectAsState(0)
-    val weekPages by viewModel.weekPages.collectAsState(0)
-    val monthPages by viewModel.monthPages.collectAsState(0)
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val viewMode by viewModel.viewMode.collectAsState()
+    val aggregatedPages by viewModel.aggregatedPages.collectAsState(0)
 
     var showAddBookDialog by remember { mutableStateOf(false) }
     var selectedBook by remember { mutableStateOf<Book?>(null) }
     var showAnalytics by remember { mutableStateOf(false) }
     var showGoalDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = Clock.System.now().toEpochMilliseconds()
+    )
     var showSortMenu by remember { mutableStateOf(false) }
     val sortOption by viewModel.sortOption.collectAsState()
 
@@ -133,14 +142,20 @@ fun BookLibraryScreen(
             // Analytics Section (Expandable)
             if (showAnalytics) {
                 item {
+                    ReadingHistoryNavigatorCard(
+                        selectedDate = selectedDate,
+                        viewMode = viewMode,
+                        aggregatedPages = aggregatedPages,
+                        onModeChange = { viewModel.setViewMode(it) },
+                        onOpenDatePicker = { showDatePicker = true }
+                    )
+                }
+                item {
                     ReadingAnalyticsCard(
                         completedCount = completedCount,
                         totalReadPages = totalPagesRead,
                         totalBooks = books.size,
-                        yearlyGoal = readingGoal.yearlyGoal,
-                        todayPages = todayPages,
-                        weekPages = weekPages,
-                        monthPages = monthPages
+                        yearlyGoal = readingGoal.yearlyGoal
                     )
                 }
             }
@@ -237,6 +252,31 @@ fun BookLibraryScreen(
                     showGoalDialog = false
                 }
             )
+        }
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { ms ->
+                            val instant = Instant.fromEpochMilliseconds(ms)
+                            val date = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
+                            viewModel.setSelectedDate(date)
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text("OK", color = CyberPurple)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancel")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
         }
     }
 
@@ -464,7 +504,7 @@ fun QuickActionChip(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: Int, yearlyGoal: Int, todayPages: Int, weekPages: Int, monthPages: Int) {
+fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: Int, yearlyGoal: Int) {
     val progress = if (yearlyGoal > 0) (completedCount.toFloat() / yearlyGoal).coerceIn(0f, 1f) else 0f
     
     Card(
@@ -500,18 +540,87 @@ fun ReadingAnalyticsCard(completedCount: Int, totalReadPages: Int, totalBooks: I
                 Text("Yearly Goal: $completedCount/$yearlyGoal", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                 Text("${(progress * 100).toInt()}%", color = Color(0xFF34C759), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            Divider(color = Color.White.copy(alpha = 0.1f))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReadingHistoryNavigatorCard(
+    selectedDate: LocalDate,
+    viewMode: ReadingViewMode,
+    aggregatedPages: Int,
+    onModeChange: (ReadingViewMode) -> Unit,
+    onOpenDatePicker: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Reading Progress", style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.5f))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { onOpenDatePicker() }
+                    ) {
+                        Text(
+                            text = when(viewMode) {
+                                ReadingViewMode.DAY -> selectedDate.toString()
+                                ReadingViewMode.WEEK -> "Week of $selectedDate"
+                                ReadingViewMode.MONTH -> "${selectedDate.month} ${selectedDate.year}"
+                                ReadingViewMode.YEAR -> "${selectedDate.year}"
+                            },
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.CalendarToday, contentDescription = null, tint = CyberPurple, modifier = Modifier.size(16.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("$aggregatedPages", color = CyberPurple, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                    Text("pages read", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            Text("Pages Read Stats", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                StatColumn(todayPages.toString(), "Today", Color(0xFF06B6D4))
-                StatColumn(weekPages.toString(), "This Week", Color(0xFF06B6D4))
-                StatColumn(monthPages.toString(), "This Month", Color(0xFF06B6D4))
+
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                val modes = ReadingViewMode.entries
+                modes.forEachIndexed { index, mode ->
+                    SegmentedButton(
+                        selected = viewMode == mode,
+                        onClick = { onModeChange(mode) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = CyberPurple.copy(alpha = 0.2f),
+                            activeContentColor = CyberPurple,
+                            inactiveContainerColor = Color.Transparent,
+                            inactiveContentColor = Color.White.copy(alpha = 0.5f),
+                            activeBorderColor = CyberPurple.copy(alpha = 0.5f),
+                            inactiveBorderColor = Color.White.copy(alpha = 0.1f)
+                        )
+                    ) {
+                        Text(
+                            text = mode.name.lowercase().replaceFirstChar { it.uppercase() },
+                            fontSize = 12.sp,
+                            fontWeight = if (viewMode == mode) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
             }
         }
     }

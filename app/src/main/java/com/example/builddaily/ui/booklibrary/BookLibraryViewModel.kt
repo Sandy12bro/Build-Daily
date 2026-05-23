@@ -26,6 +26,8 @@ enum class SortOption(val displayName: String) {
     PROGRESS("Reading Progress")
 }
 
+enum class ReadingViewMode { DAY, WEEK, MONTH, YEAR }
+
 class BookLibraryViewModel(private val repository: BookRepository) : ViewModel() {
 
     val books = repository.books
@@ -61,27 +63,37 @@ class BookLibraryViewModel(private val repository: BookRepository) : ViewModel()
 
     val readingLogs = repository.readingLogs
 
-    val todayPages = readingLogs.map { logs ->
-        val todayStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
-        logs.filter { it.dateStr == todayStr }.sumOf { it.pagesRead }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    private val _selectedDate = MutableStateFlow(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date)
+    val selectedDate = _selectedDate.asStateFlow()
 
-    val weekPages = readingLogs.map { logs ->
-        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        logs.filter { 
+    private val _viewMode = MutableStateFlow(ReadingViewMode.DAY)
+    val viewMode = _viewMode.asStateFlow()
+
+    val aggregatedPages = combine(readingLogs, _selectedDate, _viewMode) { logs, date, mode ->
+        logs.filter { record ->
             try {
-                val recordDate = LocalDate.parse(it.dateStr)
-                recordDate.daysUntil(today) in 0..6
+                val recordDate = LocalDate.parse(record.dateStr)
+                when (mode) {
+                    ReadingViewMode.DAY -> recordDate == date
+                    ReadingViewMode.WEEK -> {
+                        // 7-day window ending on the selectedDate
+                        val diff = recordDate.daysUntil(date)
+                        diff in 0..6
+                    }
+                    ReadingViewMode.MONTH -> recordDate.year == date.year && recordDate.month == date.month
+                    ReadingViewMode.YEAR -> recordDate.year == date.year
+                }
             } catch(e: Exception) { false }
         }.sumOf { it.pagesRead }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    val monthPages = readingLogs.map { logs ->
-        val todayStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
-        val currentMonth = todayStr.substring(0, 7) // YYYY-MM
-        logs.filter { it.dateStr.startsWith(currentMonth) }.sumOf { it.pagesRead }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    fun setSelectedDate(date: LocalDate) {
+        _selectedDate.value = date
+    }
 
+    fun setViewMode(mode: ReadingViewMode) {
+        _viewMode.value = mode
+    }
 
     fun setTab(index: Int) {
         _selectedTab.value = index

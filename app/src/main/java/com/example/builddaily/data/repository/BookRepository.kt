@@ -48,7 +48,7 @@ class BookRepository(context: Context) {
     }
 
     private fun addReadingLog(bookId: String, pagesDelta: Int) {
-        if (pagesDelta <= 0) return
+        if (pagesDelta == 0) return
         val dateStr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
         val record = ReadingLogRecord(
             bookId = bookId,
@@ -109,7 +109,7 @@ class BookRepository(context: Context) {
             } else it
         }
         saveBooks(updated)
-        if (actualDelta > 0) {
+        if (actualDelta != 0) {
             addReadingLog(id, actualDelta)
         }
     }
@@ -124,7 +124,7 @@ class BookRepository(context: Context) {
             } else it
         }
         saveBooks(updated)
-        if (actualDelta > 0) {
+        if (actualDelta != 0) {
             addReadingLog(id, actualDelta)
         }
     }
